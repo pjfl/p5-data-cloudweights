@@ -77,7 +77,7 @@ sub add {
       my $tag_value = $me->_values_ref->{ $tag };
 
       # Make an array if there are two or more calls to add the same tag
-      if ($tag_value && ref $tag_value ne 'ARRAY') {
+      if ($tag_value && ref $tag_value ne q(ARRAY)) {
          $me->_values_ref->{ $tag } = [ $tag_value ];
       }
 
