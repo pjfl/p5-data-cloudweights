@@ -12,6 +12,7 @@
 \bpm_to_blib$
 \bblibdirs$
 ^MANIFEST\.skip$
+^MANIFEST\.SKIP$
 
 # Avoid Module::Build generated and utility files.
 \bBuild$
