@@ -351,7 +351,7 @@ This did not let me calculate font sizes in ems
 
 =head1 Incompatibilities
 
-Probably won't work on non Unix platforms. Mostly works on Cygwin.
+There are no known incompatibilities in this module.
 
 =head1 Bugs and Limitations
 
@@ -361,7 +361,7 @@ Patches are welcome.
 
 =head1 Author
 
-Peter Flanigan (Support at RoxSoft.co.uk)
+Peter Flanigan, C<< <Support at RoxSoft.co.uk> >>
 
 =head1 License and Copyright
 
