@@ -1,5 +1,6 @@
 Build.PL
 lib/Data/CloudWeights.pm
 MANIFEST			This list of files
-README
 META.yml
+README
+t/10base.t
