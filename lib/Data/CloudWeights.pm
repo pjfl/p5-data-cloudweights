@@ -201,10 +201,10 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
    use Data::CloudWeights;
 
    # Create a new cloud
-   my $cloud = Data::CloudWeights->new(\%cfg);
+   my $cloud = Data::CloudWeights->new( \%cfg );
 
    # Add one or more tags to the cloud
-   $cloud->add($name, $count, $value);
+   $cloud->add( $name, $count, $value );
 
    # Calculate the tag cloud values
    my $nimbus = $cloud->formation();
@@ -213,7 +213,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 Each tag added to the cloud has a unique name to identify it, a count
 which represents the size of the tag and a value that is associated
-with the tag. The reference returned by $cloud->formation() is a list
+with the tag. The reference returned by C<$cloud-E<gt>formation()> is a list
 of hash refs, one hash ref per tag. In addition to the input
 parameters each hash ref contains the scaled size, the percentage of
 total and a colour value in the range hot to cold.
@@ -225,10 +225,10 @@ colour with a font size set equal to the scaled value in the result
 
 =head2 new
 
-   $cloud = Data::CloudWeights->new({ ... })
+   $cloud = Data::CloudWeights->new( [{] attr => value, ... [}] )
 
-Return a new cloud object. The optional argument is a hash ref which
-may contain these attributes:
+Return a new cloud object. The optional argument is either a list or a
+hash ref which may contain these attributes:
 
 =head3 cold_colour
 
@@ -268,7 +268,7 @@ scaled. Defaults to 0.66 (ems)
 
 =head2 add
 
-   $cloud->add($name, $count, $value)
+   $cloud->add( $name, $count, $value );
 
 Adds the tag name, count, and value triple to the cloud. The formation
 method returns a ref to an array of hash refs. Each hash ref contains
@@ -313,14 +313,14 @@ be an array ref containing each of the passed values
 
 =head2 _hex2dec
 
-   $class->_hex2dec( index, hex_value );
+   $class->_hex2dec( $index, $hex_value );
 
 Private method converts a two character string representation of a
 number to a decimal integer in the range 0 - 255
 
 =head2 _calculate_temperature
 
-   $obj->_calculate_temperature( count );
+   $obj->_calculate_temperature( $count );
 
 Private method used internally to calculate a colour value for a
 tag. If the 'hot' or 'cold' value is undefined a discreet colour value
