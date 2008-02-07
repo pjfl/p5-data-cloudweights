@@ -40,19 +40,3 @@
 #
 TAGS
 Thumbs.db
-# Avoid var directories
-var/etc/aliases
-var/tmp
-var/run
-var/hist
-var/logs
-var/comms
-var/trans
-var/master
-var/root/recipes
-var/root/reports
-
-# Not ready for ditribution
-bin/daswerk_pmon
-lib/CatalystX/Usul/Progs/Pmon.pm
-lib/CatalystX/Usul/Progs/Data.pm
