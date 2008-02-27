@@ -194,7 +194,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-0.1.$Revision$
+0.1.$Rev$
 
 =head1 Synopsis
 
@@ -227,8 +227,8 @@ colour with a font size set equal to the scaled value in the result
 
    $cloud = Data::CloudWeights->new( [{] attr => value, ... [}] )
 
-Return a new cloud object. The optional argument is either a list or a
-hash ref which may contain these attributes:
+This is a class method, the constructor for Data::CloudWeights. Options are
+passed as either a list of keyword value pairs or a hash ref. Options are:
 
 =head3 cold_colour
 
@@ -365,7 +365,7 @@ Peter Flanigan, C<< <Support at RoxSoft.co.uk> >>
 
 =head1 License and Copyright
 
-Copyright (c) 2007 RoxSoft Limited. All rights reserved.
+Copyright (c) 2007 Peter Flanigan. All rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See L<perlartistic>.
