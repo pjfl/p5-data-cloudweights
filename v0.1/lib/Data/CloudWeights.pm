@@ -347,6 +347,8 @@ This did not let me calculate font sizes in ems
 
 =item L<Class::Accessor::Fast>
 
+=item L<version>
+
 =back
 
 =head1 Incompatibilities
