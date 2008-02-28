@@ -11,6 +11,7 @@ use version; our $VERSION = qv( sprintf '0.1.%d', q$Rev$ =~ /\d+/gmx );
 my $dist     = q(lib/Data/CloudWeights.pm);
 my $requires = { 'perl'                  => q(5.8),
                  'version'               => q(0.74),
+                 'Readonly'              => q(1.03),
                  'Class::Accessor::Fast' => q(0.31) };
 my $build    = Module::Build->new( create_makefile_pl => q(traditional),
                                    create_readme      => 1,
