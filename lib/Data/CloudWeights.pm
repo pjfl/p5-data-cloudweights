@@ -18,9 +18,10 @@ Readonly my %ATTRS =>
                             CCFF66 FFFF33 FF6600 FF0000) ],
      decimal_places => 2,          # Defaults for ems
      hot_colour     => q(FF0000),  # Red
+     limit          => 0,          # Max size of returned list. Zero no limit
      max_size       => 2.0,        # Output size no more than
      min_size       => 0.66,       # Output size no less than
-     sort_field     => q(name),    # Output sorted by this field
+     sort_field     => q(tag),     # Output sorted by this field
      sort_order     => q(asc),     # Sort order - asc   or desc
      sort_type      => q(alpha),   # Sort type  - alpha or numeric
 
@@ -76,7 +77,7 @@ sub add {
    # Include the passed args in this cloud's formation
    my ($me, $tag, $count, $value) = @_;
 
-   return unless ($tag); # Mandatory arg used as a key in counts and values
+   return unless ($tag); # Mandatory arg used as a key in tag ref index
 
    # Mask out null strings and negative numbers from the passed count value
    $count  = defined $count ? abs $count : 0;
@@ -86,25 +87,25 @@ sub add {
 
    if (exists $me->_indx->{ $tag }) {
       # Calls with the same tag are cumulative
-      $count += $me->_indx->{ $tag }->{counts};
-      $me->_indx->{ $tag }->{counts} = $count;
+      $count += $me->_indx->{ $tag }->{count};
+      $me->_indx->{ $tag }->{count} = $count;
 
       if (defined $value) {
-         my $tag_value = $me->_indx->{ $tag }->{values};
+         my $tag_value = $me->_indx->{ $tag }->{value};
 
          # Make an array if there are two or more calls to add the same tag
          if ($tag_value && ref $tag_value ne q(ARRAY)) {
-            $me->_indx->{ $tag }->{values} = [ $tag_value ];
+            $me->_indx->{ $tag }->{value} = [ $tag_value ];
          }
 
          # Push passed value in each call onto the values array.
-         if ($tag_value) { push @{ $me->_indx->{ $tag }->{values} }, $value }
-         else { $me->_indx->{ $tag }->{values} = $value }
+         if ($tag_value) { push @{ $me->_indx->{ $tag }->{value} }, $value }
+         else { $me->_indx->{ $tag }->{value} = $value }
       }
    }
    else {
       # Create a new tag reference and add to both list and index
-      my $tag_ref = { counts => $count, name => $tag, values => $value };
+      my $tag_ref = { count => $count, tag => $tag, value => $value };
       $me->_indx->{ $tag } = $tag_ref;
       push @{ $me->_tags }, $tag_ref;
    }
@@ -134,31 +135,31 @@ sub formation {
 
    if ($ntags == 1) {            # One call to add was made
       $out = [ { colour  => $me->hot_colour || pop @{ $me->colour_pallet },
-                 count   => $me->_tags->[0]->{counts},
+                 count   => $me->_tags->[0]->{count},
                  percent => 100,
                  size    => $me->max_size,
-                 tag     => $me->_tags->[0]->{name},
-                 value   => $me->_tags->[0]->{values} } ];
+                 tag     => $me->_tags->[0]->{tag},
+                 value   => $me->_tags->[0]->{value} } ];
       return $out;
    }
 
    # Multiple calls to add were made, determine the sorting method
    if ($field = $me->sort_field) {
-      unless (ref $field) {
+      if (ref $field) { $sort_ref = $field } # User supplied subroutine
+      else {
          $orderby  = $SORTS{ lc $me->sort_type  }
                            { lc $me->sort_order }->( $field );
          # Protect against wrong sort type for the data
-         $sort_ref = $field ne q(name)
+         $sort_ref = $field ne q(tag)
                    ? sub { return $orderby->( @_ )
-                               || $_[0]->{name} cmp $_[1]->{name} }
+                               || $_[0]->{tag} cmp $_[1]->{tag} }
                    : $orderby;
       }
-      else { $sort_ref = $field } # User supplied subroutine
    }
-   else { $sort_ref = sub { return 1 } } # No sorting if sort field is undef
+   else { $sort_ref = sub { return 0 } } # No sorting if sort field is undef
 
    for (sort { $sort_ref->( $a, $b ) } @{ $me->_tags }) {
-      $count = $_->{counts};
+      $count = $_->{count};
       $ratio = $count / $me->total_count;
       $size  = $me->min_size + $step * ($count - $me->min_count);
 
@@ -168,8 +169,10 @@ sub formation {
                         count   => $count,
                         percent => (int 0.5 + $prec * 100 * $ratio) / $prec,
                         size    => (int 0.5 + $prec * $size) / $prec,
-                        tag     => $_->{name},
-                        value   => $_->{values} };
+                        tag     => $_->{tag},
+                        value   => $_->{value} };
+
+      last if ($me->limit && @{ $out } == $me->limit);
    }
 
    return $out;
@@ -250,7 +253,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
    my $cloud = Data::CloudWeights->new( \%cfg );
 
    # Add one or more tags to the cloud
-   $cloud->add( $name, $count, $value );
+   $cloud->add( $tag, $count, $value );
 
    # Calculate the tag cloud values
    my $nimbus = $cloud->formation();
@@ -300,6 +303,10 @@ changed tag font size can be set in pixies
 The six character hex colour for the highest count in the
 cloud. Defaults to FF0000 (red)
 
+=head3 limit
+
+Limits the size of the returned list. Defaults to zero, no limit
+
 =head3 max_size
 
 The upper boundary value to which the highest count in the cloud is
@@ -312,11 +319,11 @@ scaled. Defaults to 0.66 (ems)
 
 =head3 sort_field
 
-Select the field to sort the output by. Values are; I<name>, I<counts>
-or I<values>.  If set to I<undef> the output order will be the same as
+Select the field to sort the output by. Values are; I<tag>, I<count>
+or I<value>.  If set to I<undef> the output order will be the same as
 the order of the calls to C<add>. If set to a code ref it will be
 called as a sort comparison subroutine and passed two tag references
-whose fields are values listed above
+whose keys are values listed above
 
 =head3 sort_order
 
