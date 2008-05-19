@@ -8,7 +8,7 @@ use warnings;
 use base qw(Class::Accessor::Fast);
 use Readonly;
 
-use version; our $VERSION = qv( sprintf '0.1.%d', q$Rev$ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.2.%d', q$Rev$ =~ /\d+/gmx );
 
 Readonly my %ATTRS =>
    ( # Input. Set in constructor or call mutator before formation method
@@ -20,6 +20,9 @@ Readonly my %ATTRS =>
      hot_colour     => q(FF0000),  # Red
      max_size       => 2.0,        # Output size no more than
      min_size       => 0.66,       # Output size no less than
+     sort_field     => q(name),    # Output sorted by this field
+     sort_order     => q(asc),     # Sort order - asc   or desc
+     sort_type      => q(alpha),   # Sort type  - alpha or numeric
 
      # Output. Calling accessors becomes useful after last call to add method
      max_count      => 0,          # Current max value across all tags cloud
@@ -28,9 +31,27 @@ Readonly my %ATTRS =>
 
      # Private.
      _base          => undef,
-     _counts_ref    => undef,
+     _indx          => undef,
      _step          => undef,
-     _values_ref    => undef );
+     _tags          => undef, );
+
+Readonly my %SORTS =>
+   ( alpha => {
+        asc  => sub {
+           my $f = shift; return sub { $_[ 0 ]->{ $f } cmp $_[ 1 ]->{ $f } }
+        },
+        desc => sub {
+           my $f = shift; return sub { $_[ 1 ]->{ $f } cmp $_[ 0 ]->{ $f } }
+        },
+     },
+     numeric => {
+        asc  => sub {
+           my $f = shift; return sub { $_[ 0 ]->{ $f } <=> $_[ 1 ]->{ $f } }
+        },
+        desc => sub {
+           my $f = shift; return sub { $_[ 1 ]->{ $f } <=> $_[ 0 ]->{ $f } }
+        },
+     }, );
 
 __PACKAGE__->mk_accessors( keys %ATTRS );
 
@@ -44,11 +65,10 @@ sub new {
       $self->$_( $args->{ $_ } );
    }
 
-   $self->_base(       [] );
-   $self->_counts_ref( {} );
-   $self->_step(       [] );
-   $self->_values_ref( {} );
-
+   $self->_base( [] );
+   $self->_indx( {} );
+   $self->_step( [] );
+   $self->_tags( [] );
    return $self;
 }
 
@@ -64,57 +84,81 @@ sub add {
    # Add this count to the total for this cloud
    $me->total_count( $me->total_count + $count );
 
-   # Store the count. Calls with the same tag are cumulative
-   $count += $me->_counts_ref->{ $tag } || 0;
-   $me->_counts_ref->{ $tag } = $count;
+   if (exists $me->_indx->{ $tag }) {
+      # Calls with the same tag are cumulative
+      $count += $me->_indx->{ $tag }->{counts};
+      $me->_indx->{ $tag }->{counts} = $count;
+
+      if (defined $value) {
+         my $tag_value = $me->_indx->{ $tag }->{values};
+
+         # Make an array if there are two or more calls to add the same tag
+         if ($tag_value && ref $tag_value ne q(ARRAY)) {
+            $me->_indx->{ $tag }->{values} = [ $tag_value ];
+         }
+
+         # Push passed value in each call onto the values array.
+         if ($tag_value) { push @{ $me->_indx->{ $tag }->{values} }, $value }
+         else { $me->_indx->{ $tag }->{values} = $value }
+      }
+   }
+   else {
+      # Create a new tag reference and add to both list and index
+      my $tag_ref = { counts => $count, name => $tag, values => $value };
+      $me->_indx->{ $tag } = $tag_ref;
+      push @{ $me->_tags }, $tag_ref;
+   }
 
    # Update this cloud's max and min values
    $me->max_count( $count ) if ($count > $me->max_count);
    $me->min_count( $count ) if ($me->min_count == -1);
    $me->min_count( $count ) if ($count < $me->min_count);
 
-   if (defined $value) {
-      my $tag_value = $me->_values_ref->{ $tag };
-
-      # Make an array if there are two or more calls to add the same tag
-      if ($tag_value && ref $tag_value ne q(ARRAY)) {
-         $me->_values_ref->{ $tag } = [ $tag_value ];
-      }
-
-      # Push passed value in each call onto the values array.
-      if ($tag_value) { push @{ $me->_values_ref->{ $tag } }, $value }
-      else { $me->_values_ref->{ $tag } = $value }
-   }
-
    # Return the current cumulative count for this tag
-   return $me->_counts_ref->{ $tag };
+   return $count;
 }
 
 sub formation {
    # Calculate the result set for this cloud
-   my ($count, $me, $ntags, $out, $prec, $ratio, $rng, $size, $step, @tags);
+   my ($count, $field, $me, $ntags, $orderby, $out, $prec, $ratio);
+   my ($rng, $size, $sort_ref, $step);
 
    $me    = shift;
    $prec  = 10**$me->decimal_places;
    $rng   = abs $me->max_count - $me->min_count || 1;
    $step  = ($me->max_size - $me->min_size) / $rng;
-   $ntags = @tags = keys %{ $me->_counts_ref };
+   $ntags = @{ $me->_tags };
    $out   = [];
 
    return $out if ($ntags == 0); # No calls to add were made
 
    if ($ntags == 1) {            # One call to add was made
       $out = [ { colour  => $me->hot_colour || pop @{ $me->colour_pallet },
-                 count   => $me->_counts_ref->{ $tags[0] },
+                 count   => $me->_tags->[0]->{counts},
                  percent => 100,
                  size    => $me->max_size,
-                 tag     => $tags[0],
-                 value   => $me->_values_ref->{ $tags[0] } } ];
+                 tag     => $me->_tags->[0]->{name},
+                 value   => $me->_tags->[0]->{values} } ];
       return $out;
    }
 
-   for (sort @tags) {            # Multiple calls to add were made
-      $count = $me->_counts_ref->{ $_ };
+   # Multiple calls to add were made, determine the sorting method
+   if ($field = $me->sort_field) {
+      unless (ref $field) {
+         $orderby  = $SORTS{ lc $me->sort_type  }
+                           { lc $me->sort_order }->( $field );
+         # Protect against wrong sort type for the data
+         $sort_ref = $field ne q(name)
+                   ? sub { return $orderby->( @_ )
+                               || $_[0]->{name} cmp $_[1]->{name} }
+                   : $orderby;
+      }
+      else { $sort_ref = $field } # User supplied subroutine
+   }
+   else { $sort_ref = sub { return 1 } } # No sorting if sort field is undef
+
+   for (sort { $sort_ref->( $a, $b ) } @{ $me->_tags }) {
+      $count = $_->{counts};
       $ratio = $count / $me->total_count;
       $size  = $me->min_size + $step * ($count - $me->min_count);
 
@@ -124,8 +168,8 @@ sub formation {
                         count   => $count,
                         percent => (int 0.5 + $prec * 100 * $ratio) / $prec,
                         size    => (int 0.5 + $prec * $size) / $prec,
-                        tag     => $_,
-                        value   => $me->_values_ref->{ $_ } };
+                        tag     => $_->{name},
+                        value   => $_->{values} };
    }
 
    return $out;
@@ -136,7 +180,9 @@ sub formation {
 sub _arg_list {
    my ($me, @rest) = @_;
 
-   return $rest[0] && ref $rest[0] eq q(HASH) ? $rest[0] : { @rest };
+   return {} unless ($rest[0]);
+
+   return ref $rest[0] eq q(HASH) ? $rest[0] : { @rest };
 }
 
 sub _hex2dec {
@@ -176,7 +222,7 @@ sub _calculate_temperature {
       # Select colour from the pallet by allocating the value to a band
       $bands  = scalar @{ $me->colour_pallet };
       $index  = int 0.5 + ($cnt * ($bands - 1) / $rng);
-      $colour = $me->colour_pallet->[$index];
+      $colour = $me->colour_pallet->[ $index ];
    }
 
    return $colour;
@@ -194,7 +240,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-0.1.$Rev$
+0.2.$Rev$
 
 =head1 Synopsis
 
@@ -263,6 +309,23 @@ scaled. Defaults to 2.0 (ems)
 
 The lower boundary value to which the smallest count in the cloud is
 scaled. Defaults to 0.66 (ems)
+
+=head3 sort_field
+
+Select the field to sort the output by. Values are; I<name>, I<counts>
+or I<values>.  If set to I<undef> the output order will be the same as
+the order of the calls to C<add>. If set to a code ref it will be
+called as a sort comparison subroutine and passed two tag references
+whose fields are values listed above
+
+=head3 sort_order
+
+Either I<asc> for ascending or I<desc> for descending sort order
+
+=head3 sort_type
+
+Either I<alpha> to use the C<cmp> operator or I<numeric> to use the
+C<E<lt>=E<gt>> operator in sorting comparisons
 
 =head1 Subroutines/Methods
 
@@ -339,6 +402,10 @@ None
 
 This did not let me calculate font sizes in ems
 
+=item L<HTML::TagCloud::Sortable>
+
+I lifted the sorting code from here
+
 =back
 
 =head1 Dependencies
@@ -367,7 +434,7 @@ Peter Flanigan, C<< <Support at RoxSoft.co.uk> >>
 
 =head1 License and Copyright
 
-Copyright (c) 2007 Peter Flanigan. All rights reserved.
+Copyright (c) 2008 Peter Flanigan. All rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See L<perlartistic>.
