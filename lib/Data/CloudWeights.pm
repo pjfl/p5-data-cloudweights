@@ -403,7 +403,7 @@ None
 
 =head1 Acknowledgements
 
-=over 4
+=over 3
 
 =item Originally L<WWW::CloudCreator>
 
@@ -427,13 +427,13 @@ I lifted the sorting code from here
 
 =head1 Incompatibilities
 
-There are no known incompatibilities in this module.
+There are no known incompatibilities in this module
 
 =head1 Bugs and Limitations
 
 There are no known bugs in this module.
 Please report problems to the address below.
-Patches are welcome.
+Patches are welcome
 
 =head1 Author
 
@@ -441,14 +441,14 @@ Peter Flanigan, C<< <Support at RoxSoft.co.uk> >>
 
 =head1 License and Copyright
 
-Copyright (c) 2008 Peter Flanigan. All rights reserved.
+Copyright (c) 2008 Peter Flanigan. All rights reserved
 
 This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself. See L<perlartistic>.
+under the same terms as Perl itself. See L<perlartistic>
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 
 =cut
 
