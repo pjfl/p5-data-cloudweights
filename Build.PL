@@ -13,7 +13,7 @@ my $requires = { 'perl'                  => q(5.8),
                  'Readonly'              => q(1.03),
                  'Class::Accessor::Fast' => q(0.31) };
 my $build = Module::Build->new
-   ( build_requires     => { 'version' => q(0.74) },
+   ( build_requires     => { 'Test::More' => q(0.74), 'version'=> q(0.74) },
      create_makefile_pl => q(traditional),
      create_readme      => 1,
      create_packlist    => 0,
