@@ -20,7 +20,7 @@ my $build = Module::Build->new
      dist_version_from  => q(lib/Data/CloudWeights.pm),
      license            => q(perl),
      module_name        => q(Data::CloudWeights),
-     notes              => { cpan_testers => 0 },
+     notes              => { cpan_testers => 1 },
      requires           => $requires );
 
 $build->create_build_script();
