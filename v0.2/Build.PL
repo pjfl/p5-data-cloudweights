@@ -8,7 +8,7 @@ use Module::Build;
 
 use version; our $VERSION = qv( sprintf '0.1.%d', q$Rev$ =~ /\d+/gmx );
 
-my $requires = { 'perl'                  => q(5.8),
+my $requires = { 'perl'                  => q(5.008),
                  'version'               => q(0.74),
                  'Readonly'              => q(1.03),
                  'Class::Accessor::Fast' => q(0.31) };
@@ -21,7 +21,7 @@ my $build = Module::Build->new
      dist_version_from  => q(lib/Data/CloudWeights.pm),
      license            => q(perl),
      module_name        => q(Data::CloudWeights),
-     notes              => { cpan_testers => 1 },
+     notes              => { cpan_testers_version => 1 },
      requires           => $requires );
 
 $build->create_build_script();
