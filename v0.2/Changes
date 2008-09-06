@@ -1,3 +1,10 @@
+2008-09-06
+
+	* lib/Data/CloudWeights.pm:
+
+	Tweaked POD. Bumping release to fix broken CPAN Testers database
+
+
 2008-06-02
 
 	* Build.PL:
