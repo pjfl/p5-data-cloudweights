@@ -262,7 +262,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 Each tag added to the cloud has a unique name to identify it, a count
 which represents the size of the tag and a value that is associated
-with the tag. The reference returned by C<$cloud-E<gt>formation()> is a list
+with the tag. The reference returned by C<< $cloud->formation() >> is a list
 of hash refs, one hash ref per tag. In addition to the input
 parameters each hash ref contains the scaled size, the percentage of
 total and a colour value in the range hot to cold.
@@ -276,13 +276,14 @@ colour with a font size set equal to the scaled value in the result
 
    $cloud = Data::CloudWeights->new( [{] attr => value, ... [}] )
 
-This is a class method, the constructor for Data::CloudWeights. Options are
-passed as either a list of keyword value pairs or a hash ref. Options are:
+This is a class method, the constructor for
+L<Data::CloudWeights>. Options are passed as either a list of keyword
+value pairs or a hash ref. Options are:
 
 =head3 cold_colour
 
 The six character hex colour for the smallest count in the
-cloud. Defaults to 0000FF (blue)
+cloud. Defaults to I<0000FF> (blue)
 
 =head3 colour_pallet
 
@@ -301,7 +302,7 @@ changed tag font size can be set in pixies
 =head3 hot_colour
 
 The six character hex colour for the highest count in the
-cloud. Defaults to FF0000 (red)
+cloud. Defaults to I<FF0000> (red)
 
 =head3 limit
 
@@ -332,7 +333,7 @@ Either I<asc> for ascending or I<desc> for descending sort order
 =head3 sort_type
 
 Either I<alpha> to use the C<cmp> operator or I<numeric> to use the
-C<E<lt>=E<gt>> operator in sorting comparisons
+C<< <=> >> operator in sorting comparisons
 
 =head1 Subroutines/Methods
 
@@ -417,7 +418,7 @@ I lifted the sorting code from here
 
 =head1 Dependencies
 
-=over 4
+=over 3
 
 =item L<Class::Accessor::Fast>
 
@@ -456,4 +457,3 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # mode: perl
 # tab-width: 3
 # End:
-
