@@ -58,9 +58,9 @@ __PACKAGE__->mk_accessors( keys %ATTRS );
 
 sub new {
    # Constructor accepts a hash ref or a list of key value pairs
-   my ($me, @rest) = @_;
-   my $args        = $me->_arg_list( @rest );
-   my $self        = bless { %ATTRS }, ref $me || $me;
+   my ($proto, @rest) = @_;
+   my $args = $proto->_arg_list( @rest );
+   my $self = bless { %ATTRS }, ref $proto || $proto;
 
    for (grep { exists $self->{ $_ } } keys %{ $args }) {
       $self->$_( $args->{ $_ } );
@@ -75,7 +75,7 @@ sub new {
 
 sub add {
    # Include the passed args in this cloud's formation
-   my ($me, $tag, $count, $value) = @_;
+   my ($self, $tag, $count, $value) = @_;
 
    return unless ($tag); # Mandatory arg used as a key in tag ref index
 
@@ -83,37 +83,37 @@ sub add {
    $count  = defined $count ? abs $count : 0;
 
    # Add this count to the total for this cloud
-   $me->total_count( $me->total_count + $count );
+   $self->total_count( $self->total_count + $count );
 
-   if (exists $me->_indx->{ $tag }) {
+   if (exists $self->_indx->{ $tag }) {
       # Calls with the same tag are cumulative
-      $count += $me->_indx->{ $tag }->{count};
-      $me->_indx->{ $tag }->{count} = $count;
+      $count += $self->_indx->{ $tag }->{count};
+      $self->_indx->{ $tag }->{count} = $count;
 
       if (defined $value) {
-         my $tag_value = $me->_indx->{ $tag }->{value};
+         my $tag_value = $self->_indx->{ $tag }->{value};
 
          # Make an array if there are two or more calls to add the same tag
          if ($tag_value && ref $tag_value ne q(ARRAY)) {
-            $me->_indx->{ $tag }->{value} = [ $tag_value ];
+            $self->_indx->{ $tag }->{value} = [ $tag_value ];
          }
 
          # Push passed value in each call onto the values array.
-         if ($tag_value) { push @{ $me->_indx->{ $tag }->{value} }, $value }
-         else { $me->_indx->{ $tag }->{value} = $value }
+         if ($tag_value) { push @{ $self->_indx->{ $tag }->{value} }, $value }
+         else { $self->_indx->{ $tag }->{value} = $value }
       }
    }
    else {
       # Create a new tag reference and add to both list and index
       my $tag_ref = { count => $count, tag => $tag, value => $value };
-      $me->_indx->{ $tag } = $tag_ref;
-      push @{ $me->_tags }, $tag_ref;
+      $self->_indx->{ $tag } = $tag_ref;
+      push @{ $self->_tags }, $tag_ref;
    }
 
    # Update this cloud's max and min values
-   $me->max_count( $count ) if ($count > $me->max_count);
-   $me->min_count( $count ) if ($me->min_count == -1);
-   $me->min_count( $count ) if ($count < $me->min_count);
+   $self->max_count( $count ) if ($count > $self->max_count);
+   $self->min_count( $count ) if ($self->min_count == -1);
+   $self->min_count( $count ) if ($count < $self->min_count);
 
    # Return the current cumulative count for this tag
    return $count;
@@ -121,34 +121,34 @@ sub add {
 
 sub formation {
    # Calculate the result set for this cloud
-   my ($count, $field, $me, $ntags, $orderby, $out, $prec, $ratio);
+   my ($count, $field, $self, $ntags, $orderby, $out, $prec, $ratio);
    my ($rng, $size, $sort_ref, $step);
 
-   $me    = shift;
-   $prec  = 10**$me->decimal_places;
-   $rng   = abs $me->max_count - $me->min_count || 1;
-   $step  = ($me->max_size - $me->min_size) / $rng;
-   $ntags = @{ $me->_tags };
+   $self  = shift;
+   $prec  = 10**$self->decimal_places;
+   $rng   = abs $self->max_count - $self->min_count || 1;
+   $step  = ($self->max_size - $self->min_size) / $rng;
+   $ntags = @{ $self->_tags };
    $out   = [];
 
    return $out if ($ntags == 0); # No calls to add were made
 
    if ($ntags == 1) {            # One call to add was made
-      $out = [ { colour  => $me->hot_colour || pop @{ $me->colour_pallet },
-                 count   => $me->_tags->[0]->{count},
+      $out = [ { colour  => $self->hot_colour || pop @{ $self->colour_pallet },
+                 count   => $self->_tags->[0]->{count},
                  percent => 100,
-                 size    => $me->max_size,
-                 tag     => $me->_tags->[0]->{tag},
-                 value   => $me->_tags->[0]->{value} } ];
+                 size    => $self->max_size,
+                 tag     => $self->_tags->[0]->{tag},
+                 value   => $self->_tags->[0]->{value} } ];
       return $out;
    }
 
    # Multiple calls to add were made, determine the sorting method
-   if ($field = $me->sort_field) {
+   if ($field = $self->sort_field) {
       if (ref $field) { $sort_ref = $field } # User supplied subroutine
       else {
-         $orderby  = $SORTS{ lc $me->sort_type  }
-                           { lc $me->sort_order }->( $field );
+         $orderby  = $SORTS{ lc $self->sort_type  }
+                           { lc $self->sort_order }->( $field );
          # Protect against wrong sort type for the data
          $sort_ref = $field ne q(tag)
                    ? sub { return $orderby->( @_ )
@@ -158,21 +158,21 @@ sub formation {
    }
    else { $sort_ref = sub { return 0 } } # No sorting if sort field is undef
 
-   for (sort { $sort_ref->( $a, $b ) } @{ $me->_tags }) {
+   for (sort { $sort_ref->( $a, $b ) } @{ $self->_tags }) {
       $count = $_->{count};
-      $ratio = $count / $me->total_count;
-      $size  = $me->min_size + $step * ($count - $me->min_count);
+      $ratio = $count / $self->total_count;
+      $size  = $self->min_size + $step * ($count - $self->min_count);
 
       # Push the return array with a hash ref for each key value pair
       # passed to the add method
-      push @{ $out }, { colour  => $me->_calculate_temperature( $count ),
+      push @{ $out }, { colour  => $self->_calculate_temperature( $count ),
                         count   => $count,
                         percent => (int 0.5 + $prec * 100 * $ratio) / $prec,
                         size    => (int 0.5 + $prec * $size) / $prec,
                         tag     => $_->{tag},
                         value   => $_->{value} };
 
-      last if ($me->limit && @{ $out } == $me->limit);
+      last if ($self->limit && @{ $out } == $self->limit);
    }
 
    return $out;
@@ -181,7 +181,7 @@ sub formation {
 # Private methods begin with _
 
 sub _arg_list {
-   my ($me, @rest) = @_;
+   my ($self, @rest) = @_;
 
    return {} unless ($rest[0]);
 
@@ -190,7 +190,7 @@ sub _arg_list {
 
 sub _hex2dec {
    # Simple conversion sub
-   my ($me, $index, $val) = @_;
+   my ($self, $index, $val) = @_;
 
    return 16 * (hex substr $val, 2 * $index, 1)
              + (hex substr $val, 2 * $index + 1, 1);
@@ -198,34 +198,37 @@ sub _hex2dec {
 
 sub _calculate_temperature {
    # Generate an RGB colour for a given count
-   my ($me, $cnt) = @_; my ($bands, $cold, $colour, $hot, $index, $rng);
+   my ($self, $cnt) = @_;
+   my ($bands, $cold, $colour, $hex, $hot, $index, $rng);
 
-   $cnt -= $me->min_count;
-   $rng  = (abs $me->max_count - $me->min_count) || 1;
+   $cnt -= $self->min_count;
+   $rng  = (abs $self->max_count - $self->min_count) || 1;
 
    # Unsetting hot or cold colour strings in the constructor will cause
    # the pallet to be used instead of the exact calculation method
 
-   if ($me->hot_colour && $me->cold_colour) {
-      unless (defined $me->_base->[0]) {
+   if ($self->hot_colour && $self->cold_colour) {
+      unless (defined $self->_base->[0]) {
          # Setup the RGB colour increment steps
          for (0 .. 2) {
-            $cold = $me->_base->[$_] = $me->_hex2dec( $_, $me->cold_colour );
-            $hot  = $me->_hex2dec( $_, $me->hot_colour );
-            $me->_step->[$_] = ($hot - $cold) / $rng;
+            $cold = $self->_base->[ $_ ]
+                  = $self->_hex2dec( $_, $self->cold_colour );
+            $hot  = $self->_hex2dec( $_, $self->hot_colour );
+            $self->_step->[ $_ ] = ($hot - $cold) / $rng;
          }
       }
 
       # Exact calculation method
       for (0 .. 2) {
-         $colour .= sprintf '%02x', $me->_base->[$_] + $cnt * $me->_step->[$_];
+         $hex     = $self->_base->[ $_ ] + $cnt * $self->_step->[ $_ ];
+         $colour .= sprintf '%02x', $hex;
       }
    }
    else {
       # Select colour from the pallet by allocating the value to a band
-      $bands  = scalar @{ $me->colour_pallet };
+      $bands  = scalar @{ $self->colour_pallet };
       $index  = int 0.5 + ($cnt * ($bands - 1) / $rng);
-      $colour = $me->colour_pallet->[ $index ];
+      $colour = $self->colour_pallet->[ $index ];
    }
 
    return $colour;
