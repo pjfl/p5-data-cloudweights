@@ -13,7 +13,8 @@ my $requires = { 'perl'                  => q(5.008),
                  'Readonly'              => q(1.03),
                  'Class::Accessor::Fast' => q(0.31) };
 my $build = Module::Build->new
-   ( build_requires     => { 'Test::More'          => q(0.74) },
+   ( build_requires     => { 'Test::Harness'       => q(2.64),
+                             'Test::More'          => q(0.74) },
      configure_requires => { 'ExtUtils::MakeMaker' => q(6.42),
                              'version'             => q(0.74) },
      create_makefile_pl => q(traditional),
@@ -22,8 +23,7 @@ my $build = Module::Build->new
      dist_version_from  => q(lib/Data/CloudWeights.pm),
      license            => q(perl),
      module_name        => q(Data::CloudWeights),
-     notes              => { cpan_testers_version => 1,
-                             cpan_testers_off     => 1 },
+     notes              => { cpan_testers_version => 1 },
      requires           => $requires,
      sign               => 1 );
 
