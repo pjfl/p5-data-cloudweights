@@ -17,7 +17,7 @@ if ($ENV{AUTOMATED_TESTING} || ($ENV{PERL5OPT} || q()) =~ m{ CPAN-Reporter }mx) 
 
 plan tests => 14;
 
-BEGIN { use_ok q(Data::CloudWeights) }
+use_ok q(Data::CloudWeights);
 
 my $cloud  = Data::CloudWeights->new();
 my $nimbus = $cloud->formation();
