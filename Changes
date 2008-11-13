@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.2.71   13/11/2008
+         - New approach to CPAN testing
+
 0.2.70   26/10/2008
          - Tried to find the CPAN testers off switch again
 
