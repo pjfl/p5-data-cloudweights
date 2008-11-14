@@ -14,7 +14,8 @@ my $requires = { 'perl'                  => q(5.008),
                  'Class::Accessor::Fast' => q(0.31) };
 my $build = Module::Build->new
    ( build_requires     => { 'Test::Harness'       => q(2.64),
-                             'Test::More'          => q(0.74) },
+                             'Test::More'          => q(0.74),
+                             'Test::Pod'           => q(1.14) },
      configure_requires => { 'ExtUtils::MakeMaker' => q(6.42),
                              'version'             => q(0.74) },
      create_makefile_pl => q(traditional),

@@ -11,11 +11,14 @@ use Test::More;
 
 use version; our $VERSION = qv( sprintf '0.1.%d', q$Rev$ =~ /\d+/gmx );
 
-if ($ENV{AUTOMATED_TESTING} || ($ENV{PERL5OPT} || q()) =~ m{ CPAN-Reporter }mx) {
-   plan skip_all => q(CPAN Testing stopped);
-}
+BEGIN {
+   if ($ENV{AUTOMATED_TESTING}
+       || ($ENV{PERL5OPT} || q()) =~ m{ CPAN-Reporter }mx) {
+      plan skip_all => q(CPAN Testing stopped);
+   }
 
-plan tests => 14;
+   plan tests => 14;
+}
 
 use_ok q(Data::CloudWeights);
 
