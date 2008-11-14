@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.2.75   14/11/2008
+         - Added Test::Pod dependency to avoid NOTESTS NAs
+
 0.2.71   13/11/2008
          - New approach to CPAN testing
 
