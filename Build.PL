@@ -13,7 +13,9 @@ my $requires = { 'perl'                  => q(5.008),
                  'Readonly'              => q(1.03),
                  'Class::Accessor::Fast' => q(0.31) };
 my $build = Module::Build->new
-   ( build_requires     => { 'Test::Harness'       => q(2.64),
+   ( add_to_cleanup     => [ 'Data-CloudWeights-*',
+                             map { ( '*/' x $_ ) . '*~' } 0..5 ],
+     build_requires     => { 'Test::Harness'       => q(2.64),
                              'Test::More'          => q(0.74),
                              'Test::Pod'           => q(1.14) },
      configure_requires => { 'ExtUtils::MakeMaker' => q(6.42),
