@@ -1,5 +1,7 @@
 Revision history for Data::CloudWeights
 
+         - Updated POD Coverage tests
+
 0.2.81   05/04/2009
          - More crap for CPAN testers
 
