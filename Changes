@@ -1,5 +1,6 @@
 Revision history for Data::CloudWeights
 
+         - Improved testing idiom
          - Updated POD Coverage tests
 
 0.2.81   05/04/2009
