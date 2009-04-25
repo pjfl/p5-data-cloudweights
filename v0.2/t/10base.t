@@ -1,15 +1,14 @@
-#!/usr/bin/perl
-
 # @(#)$Id$
 
 use strict;
 use warnings;
-use English qw(-no_match_vars);
-use FindBin qw($Bin);
-use lib qq($Bin/../lib);
+use File::Spec::Functions;
+use English  qw(-no_match_vars);
+use FindBin  qw( $Bin );
+use lib (catdir( $Bin, updir, q(lib) ));
 use Test::More;
 
-use version; our $VERSION = qv( sprintf '0.1.%d', q$Rev$ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.2.%d', q$Rev$ =~ /\d+/gmx );
 
 BEGIN {
    if ($ENV{AUTOMATED_TESTING} || $ENV{PERL_CR_SMOKER_CURRENT}
@@ -70,3 +69,8 @@ $cloud->limit( 1 );
 $nimbus = $cloud->formation();
 
 ok( @{ $nimbus } == 1, q(Output limit) );
+
+# Local Variables:
+# mode: perl
+# tab-width: 3
+# End:
