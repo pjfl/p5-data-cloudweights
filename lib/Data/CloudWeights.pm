@@ -120,15 +120,14 @@ sub add {
 
 sub formation {
    # Calculate the result set for this cloud
-   my ($count, $field, $self, $ntags, $orderby, $out, $prec, $ratio);
-   my ($rng, $size, $sort_ref, $step);
+   my ($field, $orderby, $sort_ref);
 
-   $self  = shift;
-   $prec  = 10**$self->decimal_places;
-   $rng   = abs $self->max_count - $self->min_count || 1;
-   $step  = ($self->max_size - $self->min_size) / $rng;
-   $ntags = @{ $self->_tags };
-   $out   = [];
+   my $self  = shift;
+   my $prec  = 10**$self->decimal_places;
+   my $rng   = (abs $self->max_count - $self->min_count) || 1;
+   my $step  = ($self->max_size - $self->min_size) / $rng;
+   my $ntags = @{ $self->_tags };
+   my $out   = [];
 
    return $out if ($ntags == 0); # No calls to add were made
 
@@ -158,9 +157,9 @@ sub formation {
    else { $sort_ref = sub { return 0 } } # No sorting if sort field is undef
 
    for (sort { $sort_ref->( $a, $b ) } @{ $self->_tags }) {
-      $count = $_->{count};
-      $ratio = $count / $self->total_count;
-      $size  = $self->min_size + $step * ($count - $self->min_count);
+      my $count = $_->{count};
+      my $ratio = $count / $self->total_count;
+      my $size  = $self->min_size + $step * ($count - $self->min_count);
 
       # Push the return array with a hash ref for each key value pair
       # passed to the add method
@@ -171,7 +170,7 @@ sub formation {
                         tag     => $_->{tag},
                         value   => $_->{value} };
 
-      last if ($self->limit && @{ $out } == $self->limit);
+      last if ($self->limit and @{ $out } == $self->limit);
    }
 
    return $out;
@@ -206,7 +205,7 @@ sub _calculate_temperature {
    # Unsetting hot or cold colour strings in the constructor will cause
    # the pallet to be used instead of the exact calculation method
 
-   if ($self->hot_colour && $self->cold_colour) {
+   if ($self->hot_colour and $self->cold_colour) {
       unless (defined $self->_base->[0]) {
          # Setup the RGB colour increment steps
          for (0 .. 2) {
