@@ -1,16 +1,14 @@
-#!/usr/bin/perl
-
 # @(#)$Id$
 
 use strict;
 use warnings;
-use Module::Build;
-
 use version; our $VERSION = qv( sprintf '0.3.%d', q$Rev$ =~ /\d+/gmx );
 
+use Module::Build;
+
 my $requires = { 'perl'                  => q(5.008),
+                 'parent'                => q(0.221),
                  'version'               => q(0.74),
-                 'Readonly'              => q(1.03),
                  'Class::Accessor::Fast' => q(0.31) };
 my $build = Module::Build->new
    ( add_to_cleanup     => [ 'Data-CloudWeights-*',
