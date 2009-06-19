@@ -1,16 +1,14 @@
-package Data::CloudWeights;
-
 # @(#)$Id$
 # Originally WWW::CloudCreator. Now returns even more raw result
 
+package Data::CloudWeights;
+
 use strict;
 use warnings;
-use base qw(Class::Accessor::Fast);
-use Readonly;
-
 use version; our $VERSION = qv( sprintf '0.3.%d', q$Rev$ =~ /\d+/gmx );
+use parent qw(Class::Accessor::Fast);
 
-Readonly my %ATTRS =>
+my %ATTRS =
    ( # Input. Set in constructor or call mutator before formation method
      cold_colour    => q(0000FF),  # Blue
      colour_pallet  => [ qw(CC33FF 663399 3300CC 99CCFF
@@ -36,7 +34,7 @@ Readonly my %ATTRS =>
      _step          => undef,
      _tags          => undef, );
 
-Readonly my %SORTS =>
+my %SORTS =
    ( alpha => {
         asc  => sub {
            my $f = shift; return sub { $_[ 0 ]->{ $f } cmp $_[ 1 ]->{ $f } }
@@ -58,19 +56,20 @@ __PACKAGE__->mk_accessors( keys %ATTRS );
 
 sub new {
    # Constructor accepts a hash ref or a list of key value pairs
-   my ($proto, @rest) = @_;
-   my $args = $proto->_arg_list( @rest );
-   my $self = bless { %ATTRS }, ref $proto || $proto;
+   my ($self, @rest) = @_;
 
-   for (grep { exists $self->{ $_ } } keys %{ $args }) {
-      $self->$_( $args->{ $_ } );
+   my $new  = bless { %ATTRS }, ref $self || $self;
+   my $args = $self->_arg_list( @rest );
+
+   for (grep { exists $new->{ $_ } } keys %{ $args }) {
+      $new->$_( $args->{ $_ } );
    }
 
-   $self->_base( [] );
-   $self->_indx( {} );
-   $self->_step( [] );
-   $self->_tags( [] );
-   return $self;
+   $new->_base( [] );
+   $new->_indx( {} );
+   $new->_step( [] );
+   $new->_tags( [] );
+   return $new;
 }
 
 sub add {
@@ -424,8 +423,6 @@ I lifted the sorting code from here
 =over 3
 
 =item L<Class::Accessor::Fast>
-
-=item L<Readonly>
 
 =back
 

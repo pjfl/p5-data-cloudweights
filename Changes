@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+         - Use parent not base
+         - Not using Readonly
+
 0.3.94   12/06/2009
          - Improved testing idiom
          - Updated POD Coverage tests
