@@ -1,0 +1,39 @@
+Revision history for Data::CloudWeights
+
+         - Use parent not base
+         - Not using Readonly
+
+0.3.94   12/06/2009
+         - Improved testing idiom
+         - Updated POD Coverage tests
+
+0.2.81   05/04/2009
+         - More crap for CPAN testers
+
+0.2.76   23/03/2009
+         - Improved CPAN testing detection
+
+0.2.75   14/11/2008
+         - Added Test::Pod dependency to avoid NOTESTS NAs
+
+0.2.71   13/11/2008
+         - New approach to CPAN testing
+
+0.2.70   26/10/2008
+         - Tried to find the CPAN testers off switch again
+
+0.2.66   18/10/2008
+         - Tried to find the CPAN testers off switch
+
+         06/09/2008
+         - Tweaked POD. Bumping release to fix broken CPAN Testers database
+
+         02/06/2008
+         - Made version a build requirement
+
+         23/05/2008
+         - Added POD and POD coverage tests
+
+         19/05/2008
+         - Added limit to size of returned list
+         - Added sortable output fields
