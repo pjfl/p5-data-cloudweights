@@ -1,5 +1,6 @@
 Revision history for Data::CloudWeights
 
+0.4.103  29/06/2009
          - Use parent not base
          - Not using Readonly
 

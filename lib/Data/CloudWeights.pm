@@ -8,27 +8,29 @@ use warnings;
 use version; our $VERSION = qv( sprintf '0.3.%d', q$Rev$ =~ /\d+/gmx );
 use parent qw(Class::Accessor::Fast);
 
-my %ATTRS =
+my %I_ATTRS =
    ( # Input. Set in constructor or call mutator before formation method
-     cold_colour    => q(0000FF),  # Blue
+     cold_colour    => q(0000FF),   # Blue
      colour_pallet  => [ qw(CC33FF 663399 3300CC 99CCFF
                             00FFFF 66FFCC 66CC99 006600
                             CCFF66 FFFF33 FF6600 FF0000) ],
-     decimal_places => 2,          # Defaults for ems
-     hot_colour     => q(FF0000),  # Red
-     limit          => 0,          # Max size of returned list. Zero no limit
-     max_size       => 2.0,        # Output size no more than
-     min_size       => 0.66,       # Output size no less than
-     sort_field     => q(tag),     # Output sorted by this field
-     sort_order     => q(asc),     # Sort order - asc   or desc
-     sort_type      => q(alpha),   # Sort type  - alpha or numeric
+     decimal_places => 2,           # Defaults for ems
+     hot_colour     => q(FF0000),   # Red
+     limit          => 0,           # Max size of returned list. Zero no limit
+     max_size       => 2.0,         # Output size no more than
+     min_size       => 0.66,        # Output size no less than
+     sort_field     => q(tag),      # Output sorted by this field
+     sort_order     => q(asc),      # Sort order - asc   or desc
+     sort_type      => q(alpha), ); # Sort type  - alpha or numeric
 
-     # Output. Calling accessors becomes useful after last call to add method
-     max_count      => 0,          # Current max value across all tags cloud
-     min_count      => -1,         # Current min
-     total_count    => 0,          # Current total for all tags in the cloud
+my %O_ATTRS =
+   ( # Output. Calling accessors becomes useful after last call to add method
+     max_count      => 0,           # Current max value across all tags cloud
+     min_count      => -1,          # Current min
+     total_count    => 0, );        # Current total for all tags in the cloud
 
-     # Private.
+my %P_ATTRS =
+   ( # Private.
      _base          => undef,
      _indx          => undef,
      _step          => undef,
@@ -52,23 +54,19 @@ my %SORTS =
         },
      }, );
 
-__PACKAGE__->mk_accessors( keys %ATTRS );
+__PACKAGE__->mk_accessors( keys %I_ATTRS, keys %O_ATTRS, keys %P_ATTRS );
 
 sub new {
    # Constructor accepts a hash ref or a list of key value pairs
    my ($self, @rest) = @_;
 
-   my $new  = bless { %ATTRS }, ref $self || $self;
-   my $args = $self->_arg_list( @rest );
-
-   for (grep { exists $new->{ $_ } } keys %{ $args }) {
-      $new->$_( $args->{ $_ } );
-   }
+   my $new = bless $self->_merge_attrs( @rest ), ref $self || $self;
 
    $new->_base( [] );
    $new->_indx( {} );
    $new->_step( [] );
    $new->_tags( [] );
+
    return $new;
 }
 
@@ -120,14 +118,13 @@ sub add {
 
 sub formation {
    # Calculate the result set for this cloud
-   my ($field, $orderby, $sort_ref);
-
-   my $self  = shift;
-   my $prec  = 10**$self->decimal_places;
-   my $rng   = (abs $self->max_count - $self->min_count) || 1;
-   my $step  = ($self->max_size - $self->min_size) / $rng;
-   my $ntags = @{ $self->_tags };
-   my $out   = [];
+   my $self    = shift;
+   my $prec    = 10**$self->decimal_places;
+   my $rng     = (abs $self->max_count - $self->min_count) || 1;
+   my $step    = ($self->max_size - $self->min_size) / $rng;
+   my $compare = $self->_get_sort_method;
+   my $ntags   = @{ $self->_tags };
+   my $out     = [];
 
    return $out if ($ntags == 0); # No calls to add were made
 
@@ -141,22 +138,7 @@ sub formation {
       return $out;
    }
 
-   # Multiple calls to add were made, determine the sorting method
-   if ($field = $self->sort_field) {
-      if (ref $field) { $sort_ref = $field } # User supplied subroutine
-      else {
-         $orderby  = $SORTS{ lc $self->sort_type  }
-                           { lc $self->sort_order }->( $field );
-         # Protect against wrong sort type for the data
-         $sort_ref = $field ne q(tag)
-                   ? sub { return $orderby->( @_ )
-                               || $_[0]->{tag} cmp $_[1]->{tag} }
-                   : $orderby;
-      }
-   }
-   else { $sort_ref = sub { return 0 } } # No sorting if sort field is undef
-
-   for (sort { $sort_ref->( $a, $b ) } @{ $self->_tags }) {
+   for (sort { $compare->( $a, $b ) } @{ $self->_tags }) {
       my $count = $_->{count};
       my $ratio = $count / $self->total_count;
       my $size  = $self->min_size + $step * ($count - $self->min_count);
@@ -178,12 +160,25 @@ sub formation {
 
 # Private methods begin with _
 
-sub _arg_list {
-   my ($self, @rest) = @_;
+sub _get_sort_method {
+   # Multiple calls to add were made, determine the sorting method
+   my $self = shift; my ($field, $orderby, $sort_ref);
 
-   return {} unless ($rest[0]);
+   if ($field = $self->sort_field) {
+      if (ref $field) { $sort_ref = $field } # User supplied subroutine
+      else {
+         $orderby  = $SORTS{ lc $self->sort_type  }
+                           { lc $self->sort_order }->( $field );
+         # Protect against wrong sort type for the data
+         $sort_ref = $field ne q(tag)
+                   ? sub { return $orderby->( @_ )
+                               || $_[0]->{tag} cmp $_[1]->{tag} }
+                   : $orderby;
+      }
+   }
+   else { $sort_ref = sub { return 0 } } # No sorting if sort field is undef
 
-   return ref $rest[0] eq q(HASH) ? $rest[0] : { @rest };
+   return $sort_ref;
 }
 
 sub _hex2dec {
@@ -232,6 +227,14 @@ sub _calculate_temperature {
    return $colour;
 }
 
+sub _merge_attrs {
+   my ($self, @rest) = @_;
+
+   my $args = $rest[0] && ref $rest[0] eq q(HASH) ? $rest[0] : { @rest };
+
+   return { %I_ATTRS, %{ $args }, %O_ATTRS };
+}
+
 1;
 
 __END__
@@ -273,53 +276,49 @@ colour with a font size set equal to the scaled value in the result
 
 =head1 Configuration and Environment
 
-=head2 new
+Attributes defined by this class:
 
-   $cloud = Data::CloudWeights->new( [{] attr => value, ... [}] )
+=over 3
 
-This is a class method, the constructor for
-L<Data::CloudWeights>. Options are passed as either a list of keyword
-value pairs or a hash ref. Options are:
-
-=head3 cold_colour
+=item I<cold_colour>
 
 The six character hex colour for the smallest count in the
 cloud. Defaults to I<0000FF> (blue)
 
-=head3 colour_pallet
+=item I<colour_pallet>
 
 An array ref of hex colour values. If the cold_colour attribute is set
 to null then the colour values from the pallet are used instead of
 calculating the colour value from the scaled count. Defaults to twelve
 values that give an even transition from blue to red
 
-=head3 decimal_places
+=item I<decimal_places>
 
 The number of decimal places returned in the size attribute. Defaults
 to 2.  With the default values for high and low this lets you set the
 tags font size in ems. If set to 0 and the high/low values suitably
 changed tag font size can be set in pixies
 
-=head3 hot_colour
+=item I<hot_colour>
 
 The six character hex colour for the highest count in the
 cloud. Defaults to I<FF0000> (red)
 
-=head3 limit
+=item I<limit>
 
 Limits the size of the returned list. Defaults to zero, no limit
 
-=head3 max_size
+=item I<max_size>
 
 The upper boundary value to which the highest count in the cloud is
 scaled. Defaults to 2.0 (ems)
 
-=head3 min_size
+=item I<min_size>
 
 The lower boundary value to which the smallest count in the cloud is
 scaled. Defaults to 0.66 (ems)
 
-=head3 sort_field
+=item I<sort_field>
 
 Select the field to sort the output by. Values are; I<tag>, I<count>
 or I<value>.  If set to I<undef> the output order will be the same as
@@ -327,16 +326,26 @@ the order of the calls to C<add>. If set to a code ref it will be
 called as a sort comparison subroutine and passed two tag references
 whose keys are values listed above
 
-=head3 sort_order
+=item I<sort_order>
 
 Either I<asc> for ascending or I<desc> for descending sort order
 
-=head3 sort_type
+=item I<sort_type>
 
 Either I<alpha> to use the C<cmp> operator or I<numeric> to use the
 C<< <=> >> operator in sorting comparisons
 
+=back
+
 =head1 Subroutines/Methods
+
+=head2 new
+
+   $cloud = Data::CloudWeights->new( [{] attr => value, ... [}] )
+
+This is a class method, the constructor for
+L<Data::CloudWeights>. Options are passed as either a list of keyword
+value pairs or a hash ref
 
 =head2 add
 
@@ -399,6 +408,13 @@ tag. If the 'hot' or 'cold' value is undefined a discreet colour value
 will be selected from the 'pallet' instead of calculating it using a
 continuous function
 
+=head2 _merge_attrs
+
+   $attrs = $class->_merge_attrs( @rest );
+
+Merge config defaults with supplied parameters and return the object's
+attribute hash. Called from the constructor
+
 =head1 Diagnostics
 
 None
@@ -441,7 +457,7 @@ Peter Flanigan, C<< <Support at RoxSoft.co.uk> >>
 
 =head1 License and Copyright
 
-Copyright (c) 2008 Peter Flanigan. All rights reserved
+Copyright (c) 2008-2009 Peter Flanigan. All rights reserved
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See L<perlartistic>
