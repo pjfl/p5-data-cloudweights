@@ -14,7 +14,7 @@ my %I_ATTRS =
      colour_pallet  => [ qw(CC33FF 663399 3300CC 99CCFF
                             00FFFF 66FFCC 66CC99 006600
                             CCFF66 FFFF33 FF6600 FF0000) ],
-     decimal_places => 2,           # Defaults for ems
+     decimal_places => 3,           # Defaults for ems
      hot_colour     => q(FF0000),   # Red
      limit          => 0,           # Max size of returned list. Zero no limit
      max_size       => 2.0,         # Output size no more than
