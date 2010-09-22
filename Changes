@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.5.108  2010-09-22
+         - Switched to M::B for installs
+
 0.4.106  2010-09-22
          - Increased prescision to 3 decimal places
 

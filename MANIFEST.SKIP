@@ -13,7 +13,6 @@
 \bblibdirs$
 ^MANIFEST\.skip$
 ^MANIFEST\.SKIP$
-^Build.PL$
 ^SIGNATURE$
 ^Debian_CPANTS.txt$
 
@@ -21,6 +20,7 @@
 \bBuild$
 \bBuild.bat$
 \b_build
+^MYMETA.yml$
 
 # Avoid Devel::Cover generated files
 \bcover_db
@@ -39,10 +39,8 @@
 \B\.DS_Store
 #   Mac OSX SMB mount metadata files
 \B\._
-# Avoid archives of this distribution
-\bdasWerk-[\d\.\_]+
 #
 TAGS
 Thumbs.db
+# Avoid archives of this distribution
 ^Data-CloudWeights
-^MYMETA.yml$
