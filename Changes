@@ -1,9 +1,9 @@
 Revision history for Data::CloudWeights
 
-0.4.104  2010-07-29
+0.4.106  2010-09-22
          - Increased prescision to 3 decimal places
 
-0.4.103  29/06/2009
+0.3.103  29/06/2009
          - Use parent not base
          - Not using Readonly
 
