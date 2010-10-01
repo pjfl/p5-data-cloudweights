@@ -8,13 +8,12 @@ use FindBin qw( $Bin );
 use lib catdir( $Bin, updir, q(lib) );
 
 use English qw( -no_match_vars );
+use Module::Build;
 use Test::More;
 
 BEGIN {
-   if ($ENV{AUTOMATED_TESTING}  || $ENV{PERL_CR_SMOKER_CURRENT} ||
-       $ENV{PERL5_MINISMOKEBOX} || $ENV{PERL5_YACSMOKE_BASE}) {
-      plan skip_all => q(CPAN Testing stopped);
-   }
+   Module::Build->current->notes->{stop_tests}
+      and plan skip_all => q(CPAN Testing stopped);
 
    plan tests => 14;
 }
