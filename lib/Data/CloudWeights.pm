@@ -8,6 +8,8 @@ use warnings;
 use version; our $VERSION = qv( sprintf '0.5.%d', q$Rev$ =~ /\d+/gmx );
 use parent qw(Class::Accessor::Fast);
 
+# TODO: Use Color::Spectrum;
+
 my %I_ATTRS =
    ( # Input. Set in constructor or call mutator before formation method
      cold_colour    => q(0000FF),   # Blue
