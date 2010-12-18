@@ -1,76 +1,61 @@
 # @(#)$Id$
-# Originally WWW::CloudCreator. Now returns even more raw result
 
 package Data::CloudWeights;
 
 use strict;
-use warnings;
+use namespace::autoclean;
 use version; our $VERSION = qv( sprintf '0.5.%d', q$Rev$ =~ /\d+/gmx );
-use parent qw(Class::Accessor::Fast);
 
-# TODO: Use Color::Spectrum;
+# TODO: use Color::Spectrum;
+use Moose;
 
-my %I_ATTRS =
-   ( # Input. Set in constructor or call mutator before formation method
-     cold_colour    => q(0000FF),   # Blue
-     colour_pallet  => [ qw(CC33FF 663399 3300CC 99CCFF
-                            00FFFF 66FFCC 66CC99 006600
-                            CCFF66 FFFF33 FF6600 FF0000) ],
-     decimal_places => 3,           # Defaults for ems
-     hot_colour     => q(FF0000),   # Red
-     limit          => 0,           # Max size of returned list. Zero no limit
-     max_size       => 3.0,         # Output size no more than
-     min_size       => 1.0,         # Output size no less than
-     sort_field     => q(tag),      # Output sorted by this field
-     sort_order     => q(asc),      # Sort order - asc   or desc
-     sort_type      => q(alpha), ); # Sort type  - alpha or numeric
+has 'cold_colour'    => is => 'rw', isa => 'Str', default => '0000FF',
+   documentation     => 'Blue';
+has 'colour_pallet'  => is => 'rw', isa => 'ArrayRef',
+   default           => sub { [ qw(CC33FF 663399 3300CC 99CCFF
+                                   00FFFF 66FFCC 66CC99 006600
+                                   CCFF66 FFFF33 FF6600 FF0000) ] },
+   documentation     => 'Alternative to colour calculation';
+has 'decimal_places' => is => 'rw', isa => 'Int', default => 3,
+   documentation     => 'Defaults for ems';
+has 'hot_colour'     => is => 'rw', isa => 'Str', default => 'FF0000',
+   documentation     => 'Red';
+has 'limit'          => is => 'rw', isa => 'Int', default => 0,
+   documentation     => 'Max size of returned list. Zero no limit';
+has 'max_count'      => is => 'rw', isa => 'Int', default => 0,
+   documentation     => 'Current max value across all tags cloud';
+has 'max_size'       => is => 'rw', isa => 'Num', default => 3.0,
+   documentation     => 'Output size no more than';
+has 'min_count'      => is => 'rw', isa => 'Int', default => -1,
+   documentation     => 'Current min';
+has 'min_size'       => is => 'rw', isa => 'Num', default => 1.0,
+   documentation     => 'Output size no less than';
+has 'sort_field'     => is => 'rw', isa => 'Maybe[Str]', default => 'tag',
+   documentation     => 'Output sorted by this field';
+has 'sort_order'     => is => 'rw', isa => 'Str', default => 'asc',
+   documentation     => 'Sort order - asc   or desc';
+has 'sort_type'      => is => 'rw', isa => 'Str', default => 'alpha',
+   documentation     => 'Sort type  - alpha or numeric';
+has 'total_count'    => is => 'rw', isa => 'Int', default => 0,
+   documentation     => 'Current total for all tags in the cloud';
 
-my %O_ATTRS =
-   ( # Output. Calling accessors becomes useful after last call to add method
-     max_count      => 0,           # Current max value across all tags cloud
-     min_count      => -1,          # Current min
-     total_count    => 0, );        # Current total for all tags in the cloud
-
-my %P_ATTRS =
-   ( # Private.
-     _base          => undef,
-     _indx          => undef,
-     _step          => undef,
-     _tags          => undef, );
-
-my %SORTS =
-   ( alpha => {
-        asc  => sub {
-           my $f = shift; return sub { $_[ 0 ]->{ $f } cmp $_[ 1 ]->{ $f } }
-        },
-        desc => sub {
-           my $f = shift; return sub { $_[ 1 ]->{ $f } cmp $_[ 0 ]->{ $f } }
-        },
-     },
-     numeric => {
-        asc  => sub {
-           my $f = shift; return sub { $_[ 0 ]->{ $f } <=> $_[ 1 ]->{ $f } }
-        },
-        desc => sub {
-           my $f = shift; return sub { $_[ 1 ]->{ $f } <=> $_[ 0 ]->{ $f } }
-        },
-     }, );
-
-__PACKAGE__->mk_accessors( keys %I_ATTRS, keys %O_ATTRS, keys %P_ATTRS );
-
-sub new {
-   # Constructor accepts a hash ref or a list of key value pairs
-   my ($self, @rest) = @_;
-
-   my $new = bless $self->_merge_attrs( @rest ), ref $self || $self;
-
-   $new->_base( [] );
-   $new->_indx( {} );
-   $new->_step( [] );
-   $new->_tags( [] );
-
-   return $new;
-}
+has '_base'  => is => 'ro', isa => 'ArrayRef', default => sub { [] };
+has '_indx'  => is => 'ro', isa => 'HashRef',  default => sub { {} };
+has '_sorts' => is => 'ro', isa => 'HashRef',  default => sub { {
+   alpha => {
+      asc  => sub { my $x = shift; sub { $_[ 0 ]->{ $x } cmp $_[ 1 ]->{ $x } }
+      },
+      desc => sub { my $x = shift; sub { $_[ 1 ]->{ $x } cmp $_[ 0 ]->{ $x } }
+      },
+   },
+   numeric => {
+      asc  => sub { my $x = shift; sub { $_[ 0 ]->{ $x } <=> $_[ 1 ]->{ $x } }
+      },
+      desc => sub { my $x = shift; sub { $_[ 1 ]->{ $x } <=> $_[ 0 ]->{ $x } }
+      },
+   } } };
+has '_step'  => is => 'ro', isa => 'ArrayRef', default => sub { [] };
+has '_tags'  => is => 'ro', isa => 'ArrayRef', default => sub { [] };
 
 sub add {
    # Include the passed args in this cloud's formation
@@ -170,8 +155,8 @@ sub _get_sort_method {
 
    ref $field and return $field; # User supplied subroutine
 
-   my $orderby = $SORTS{ lc $self->sort_type  }
-                       { lc $self->sort_order }->( $field );
+   my $orderby = $self->_sorts->{ lc $self->sort_type  }
+                              ->{ lc $self->sort_order }->( $field );
 
    # Protect against wrong sort type for the data
    return $field ne q(tag)
@@ -226,13 +211,9 @@ sub _calculate_temperature {
    return $colour;
 }
 
-sub _merge_attrs {
-   my ($self, @rest) = @_;
+__PACKAGE__->meta->make_immutable;
 
-   my $args = $rest[ 0 ] && ref $rest[ 0 ] eq q(HASH) ? $rest[ 0 ] : { @rest };
-
-   return { %I_ATTRS, %{ $args }, %O_ATTRS };
-}
+no Moose;
 
 1;
 
@@ -407,13 +388,6 @@ tag. If the 'hot' or 'cold' value is undefined a discreet colour value
 will be selected from the 'pallet' instead of calculating it using a
 continuous function
 
-=head2 _merge_attrs
-
-   $attrs = $class->_merge_attrs( @rest );
-
-Merge config defaults with supplied parameters and return the object's
-attribute hash. Called from the constructor
-
 =head1 Diagnostics
 
 None
@@ -436,7 +410,7 @@ I lifted the sorting code from here
 
 =over 3
 
-=item L<Class::Accessor::Fast>
+=item L<Moose>
 
 =back
 
@@ -456,7 +430,7 @@ Peter Flanigan, C<< <Support at RoxSoft.co.uk> >>
 
 =head1 License and Copyright
 
-Copyright (c) 2008-2009 Peter Flanigan. All rights reserved
+Copyright (c) 2008-2010 Peter Flanigan. All rights reserved
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See L<perlartistic>
