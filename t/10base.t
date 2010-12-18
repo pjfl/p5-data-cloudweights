@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use version; our $VERSION = qv( sprintf '0.5.%d', q$Rev$ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.6.%d', q$Rev$ =~ /\d+/gmx );
 use File::Spec::Functions;
 use FindBin qw( $Bin );
 use lib catdir( $Bin, updir, q(lib) );
@@ -33,7 +33,7 @@ $nimbus = $cloud->formation();
 
 ok( $nimbus && $nimbus->[0]->{count} == 1, q(Single count) );
 
-ok( $nimbus->[0]->{colour} eq q(FF0000), q(Single colour) );
+ok( $nimbus->[0]->{colour} eq q(#FF0000), q(Single colour) );
 
 ok( $cloud->add( q(tag0), 1, 1 ) == 1, q(Add return value - 3) );
 

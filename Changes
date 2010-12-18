@@ -1,5 +1,9 @@
 Revision history for Data::CloudWeights
 
+0.6.119  2010-12-18
+         - Uses Color::Spectrum
+         - Moosed
+
 0.5.112  2010-09-28
          - Removed execute permission from Build.PL
 
