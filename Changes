@@ -1,6 +1,6 @@
 Revision history for Data::CloudWeights
 
-0.6.119  2010-12-18
+0.6.120  2010-12-18
          - Uses Color::Spectrum
          - Moosed
 
