@@ -13,7 +13,8 @@ use Moose::Util::TypeConstraints;
 enum 'D_CW_Sort_Order' => qw(asc desc);
 enum 'D_CW_Sort_Type'  => qw(alpha numeric);
 
-subtype 'D_CW_Colour'  => as 'Str' => where { '#' eq substr $_, 0, 1 };
+subtype 'D_CW_Colour'  => as 'Str' =>
+   where { not $_ or '#' eq substr $_, 0, 1 };
 
 has 'cold_colour'    => is => 'ro', isa => 'Maybe[D_CW_Colour]',
    default           => '#0000FF', documentation => 'Blue';
@@ -134,16 +135,15 @@ sub formation {
    my $ntags   = @{ $self->_tags };
    my $out     = [];
 
-   $ntags == 0 and return $out; # No calls to add were made
+   $ntags == 0 and return []; # No calls to add were made
 
    if ($ntags == 1) {           # One call to add was made
-      $out = [ { colour  => $self->hot_colour || pop @{ $self->colour_pallet },
+      return [ { colour  => $self->hot_colour || pop @{ $self->colour_pallet },
                  count   => $self->_tags->[ 0 ]->{count},
                  percent => 100,
                  size    => $self->max_size,
                  tag     => $self->_tags->[ 0 ]->{tag},
                  value   => $self->_tags->[ 0 ]->{value} } ];
-      return $out;
    }
 
    for (sort { $compare->( $a, $b ) } @{ $self->_tags }) {
@@ -377,6 +377,8 @@ I lifted the sorting code from here
 =head1 Dependencies
 
 =over 3
+
+=item L<Color::Spectrum>
 
 =item L<Moose>
 
