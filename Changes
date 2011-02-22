@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.6.124  2011-02-22
+         - Suppressed Konig CPAN testing again
+
 0.6.122  2010-12-18
          - Uses Color::Spectrum
          - Moosed
