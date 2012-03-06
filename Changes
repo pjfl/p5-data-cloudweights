@@ -1,5 +1,6 @@
 Revision history for Data::CloudWeights
 
+         - Added more tests
          - Updated inc::Bob
 
 0.6.128  2011-04-12
