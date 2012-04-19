@@ -4,46 +4,59 @@ package Data::CloudWeights;
 
 use strict;
 use namespace::autoclean;
-use version; our $VERSION = qv( sprintf '0.6.%d', q$Rev$ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.7.%d', q$Rev$ =~ /\d+/gmx );
 
-use Color::Spectrum;
 use Moose;
 use Moose::Util::TypeConstraints;
+use Color::Spectrum;
 
-enum 'D_CW_Sort_Order' => qw(asc desc);
-enum 'D_CW_Sort_Type'  => qw(alpha numeric);
+enum 'Data::CloudWeights::Sort_Order' => qw(asc desc);
+enum 'Data::CloudWeights::Sort_Type'  => qw(alpha numeric);
 
-subtype 'D_CW_Colour'  => as 'Str' =>
+subtype 'Data::CloudWeights::Colour'  => as 'Str' =>
    where { not $_ or '#' eq substr $_, 0, 1 };
 
-has 'cold_colour'    => is => 'ro', isa => 'Maybe[D_CW_Colour]',
-   default           => '#0000FF', documentation => 'Blue';
-has 'hot_colour'     => is => 'ro', isa => 'Maybe[D_CW_Colour]',
-   default           => '#FF0000', documentation => 'Red';
+has 'cold_colour'    => is => 'ro', isa => 'Maybe[Data::CloudWeights::Colour]',
+   documentation     => 'Blue', default => '#0000FF';
 
-has 'colour_pallet'  => is => 'rw', isa => 'ArrayRef[D_CW_Colour]',
+has 'hot_colour'     => is => 'ro', isa => 'Maybe[Data::CloudWeights::Colour]',
+   documentation     => 'Red', default => '#FF0000';
+
+has 'colour_pallet'  => is => 'rw',
+   isa               => 'ArrayRef[Data::CloudWeights::Colour]',
+   documentation     => 'Alternative to colour calculation',
    default           => sub { [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
                                 '#00FFFF', '#66FFCC', '#66CC99', '#006600',
-                                '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ] },
-   documentation     => 'Alternative to colour calculation';
+                                '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ] };
+
 has 'decimal_places' => is => 'rw', isa => 'Int', default => 3,
    documentation     => 'Defaults for ems';
+
 has 'limit'          => is => 'rw', isa => 'Int', default => 0,
    documentation     => 'Max size of returned list. Zero no limit';
+
 has 'max_count'      => is => 'rw', isa => 'Int', default => 0,
    documentation     => 'Current max value across all tags cloud';
+
 has 'max_size'       => is => 'rw', isa => 'Num', default => 3.0,
    documentation     => 'Output size no more than';
+
 has 'min_count'      => is => 'rw', isa => 'Int', default => -1,
    documentation     => 'Current min';
+
 has 'min_size'       => is => 'rw', isa => 'Num', default => 1.0,
    documentation     => 'Output size no less than';
+
 has 'sort_field'     => is => 'rw', isa => 'Maybe[Str]', default => 'tag',
    documentation     => 'Output sorted by this field';
-has 'sort_order'     => is => 'rw', isa => 'D_CW_Sort_Order', default => 'asc',
-   documentation     => 'Sort order - asc   or desc';
-has 'sort_type'      => is => 'rw', isa => 'D_CW_Sort_Type', default => 'alpha',
-   documentation     => 'Sort type  - alpha or numeric';
+
+has 'sort_order'     => is => 'rw', isa => 'Data::CloudWeights::Sort_Order',
+   documentation     => 'Sort order - asc or desc', default => 'asc';
+
+has 'sort_type'      => is => 'rw', isa => 'Data::CloudWeights::Sort_Type',
+   documentation     => 'Sort type - alpha or numeric',
+   default           => 'alpha';
+
 has 'total_count'    => is => 'rw', isa => 'Int', default => 0,
    documentation     => 'Current total for all tags in the cloud';
 
@@ -90,7 +103,7 @@ sub add {
    # Add this count to the total for this cloud
    $self->total_count( $self->total_count + $count );
 
-   unless (exists $self->_index->{ $tag }) {
+   if (not exists $self->_index->{ $tag }) {
       # Create a new tag reference and add to both list and index
       my $tag_ref = { count => $count, tag => $tag, value => $value };
 
@@ -205,7 +218,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-0.6.$Rev$
+0.7.$Rev$
 
 =head1 Synopsis
 
@@ -218,7 +231,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
    $cloud->add( $tag, $count, $value );
 
    # Calculate the tag cloud values
-   my $nimbus = $cloud->formation();
+   my $nimbus = $cloud->formation;
 
 =head1 Description
 
@@ -415,4 +428,3 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # mode: perl
 # tab-width: 3
 # End:
-

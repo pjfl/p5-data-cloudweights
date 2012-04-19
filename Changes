@@ -1,5 +1,7 @@
 Revision history for Data::CloudWeights
 
+0.7.140  2012-04-19
+         - Turned CPAN testing on
          - Updated inc::Bob to 1.3
          - Updated inc::Bob. Added inc::CPANTesting
          - Added more tests
