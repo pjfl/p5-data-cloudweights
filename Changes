@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.7.141  2012-04-20
+         - Added missing dependency on namespace::autoclean
+
 0.7.140  2012-04-19
          - Turned CPAN testing on
          - Updated inc::Bob to 1.3
