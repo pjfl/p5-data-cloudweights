@@ -1,5 +1,9 @@
 Revision history for Data::CloudWeights
 
+0.7.142  2012-04-25
+         - Excluded the usual list of CPAN testing platforms due to
+           008a5fc8-8e59-11e1-9ec4-a796756b88d3
+
 0.7.141  2012-04-20
          - Added missing dependency on namespace::autoclean
 
