@@ -1,5 +1,9 @@
 Revision history for Data::CloudWeights
 
+0.7.144  2012-09-06
+         - Added POD spelling tests
+         - Updated inc::Bob to 1.3
+
 0.7.143  2012-04-25
          - Excluded the usual list of CPAN testing platforms due to
            008a5fc8-8e59-11e1-9ec4-a796756b88d3
