@@ -21,6 +21,8 @@ Bob->new( {
 } )->create_build_script; # Goal!
 
 # Local Variables:
+# tab-title: CloudWeights
+# eval: (load-project-state "data-cloudweights")
 # mode: perl
 # tab-width: 3
 # End:
