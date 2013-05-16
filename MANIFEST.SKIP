@@ -2,8 +2,14 @@
 \bRCS\b
 \bCVS\b
 ,v$
-\B\.svn\b
 \B\.cvsignore$
+\B\.git\b
+\B\.gitattributes$
+\B\.gitcommit-msg$
+\B\.gitignore$
+\B\.gitignore-rev$
+\B\.gitpre-commit$
+\B\.svn\b
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
@@ -11,17 +17,24 @@
 \bMakeMaker-\d
 \bpm_to_blib$
 \bblibdirs$
-^Debian_CPANTS.txt$
 ^MANIFEST\.skip$
 ^MANIFEST\.SKIP$
 ^MYMETA\.json$
 ^MYMETA\.yml$
+^README\.md$
+^README\.textile$
 ^SIGNATURE$
+^Debian_CPANTS.txt$
+^nytprof/
+^nytprof.out$
 
 # Avoid Module::Build generated and utility files.
 \bBuild$
 \bBuild.bat$
 \b_build
+
+# Avoid Dist::Zilla config file
+\bdist.ini$
 
 # Avoid Devel::Cover generated files
 \bcover_db
@@ -40,8 +53,11 @@
 \B\.DS_Store
 #   Mac OSX SMB mount metadata files
 \B\._
-#
+
+# Avoid other crap
 TAGS
 Thumbs.db
+\bipc_srlock
+
 # Avoid archives of this distribution
-^Data-CloudWeights
+\bData-CloudWeights-v?[\d\.\_]+

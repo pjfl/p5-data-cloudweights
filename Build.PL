@@ -1,23 +1,25 @@
-# @(#)$Id$
+# @(#)Ident: Build.PL 2013-05-16 21:40 pjf ;
 
 use strict;
 use warnings;
 use inc::Bob; # Module::Build subclass
-use version; our $VERSION = qv( sprintf '0.7.%d', q$Rev$ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.7.%d', q$Rev: 1 $ =~ /\d+/gmx );
 
 Bob->new( {
-   module     => q(Data::CloudWeights),
-   home_page  => q(http://www.roxsoft.co.uk),
-   requires   => {
-      'perl'                 => 5.010,
+   module   => q(Data::CloudWeights),
+   home_page=> q(http://www.roxsoft.co.uk),
+   requires  => {
+      'perl'                 => 5.01,
       'namespace::autoclean' => 0.13,
       'parent'               => 0.221,
-      'version'              => 0.74,
       'Color::Spectrum'      => 1.06,
-      'Moose'                => 2.0402, },
-   configure_requires   => { 'version'       => 0.74,
-                             'Module::Build' => 0.32, },
-   build_requires       => { 'Test::More'    => 0.74, },
+      'Moose'                => 2.0802, },
+   configure_requires        => {
+      'version'              => 0.88,
+      'Module::Build'        => 0.4004, },
+   build_requires            => {
+      'version'              => 0.88,
+      'Module::Build'        => 0.4004, },
 } )->create_build_script; # Goal!
 
 # Local Variables:

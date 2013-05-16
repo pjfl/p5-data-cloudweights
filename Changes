@@ -1,76 +1,78 @@
 Revision history for Data::CloudWeights
 
-0.7.144  2012-09-06
-         - Added POD spelling tests
-         - Updated inc::Bob to 1.3
+          - Converted from SVN to Git
 
-0.7.143  2012-04-25
-         - Excluded the usual list of CPAN testing platforms due to
-           008a5fc8-8e59-11e1-9ec4-a796756b88d3
+0.7.144   2012-09-06
+          - Added POD spelling tests
+          - Updated inc::Bob to 1.3
 
-0.7.141  2012-04-20
-         - Added missing dependency on namespace::autoclean
+0.7.143   2012-04-25
+          - Excluded the usual list of CPAN testing platforms due to
+            008a5fc8-8e59-11e1-9ec4-a796756b88d3
 
-0.7.140  2012-04-19
-         - Turned CPAN testing on
-         - Updated inc::Bob to 1.3
-         - Updated inc::Bob. Added inc::CPANTesting
-         - Added more tests
-         - Updated inc::Bob
+0.7.141   2012-04-20
+          - Added missing dependency on namespace::autoclean
 
-0.6.128  2011-04-12
-         - Suppressed dcollins CPAN testing
-         - Moved boilerplate M::B subclass code to inc/Bob.pm
-         - Suppressed Konig CPAN testing again
+0.7.140   2012-04-19
+          - Turned CPAN testing on
+          - Updated inc::Bob to 1.3
+          - Updated inc::Bob. Added inc::CPANTesting
+          - Added more tests
+          - Updated inc::Bob
 
-0.6.122  2010-12-18
-         - Uses Color::Spectrum
-         - Moosed
+0.6.128   2011-04-12
+          - Suppressed dcollins CPAN testing
+          - Moved boilerplate M::B subclass code to inc/Bob.pm
+          - Suppressed Konig CPAN testing again
 
-0.5.112  2010-09-28
-         - Removed execute permission from Build.PL
+0.6.122   2010-12-18
+          - Uses Color::Spectrum
+          - Moosed
 
-0.5.108  2010-09-22
-         - Switched to M::B for installs
+0.5.112   2010-09-28
+          - Removed execute permission from Build.PL
 
-0.4.106  2010-09-22
-         - Increased prescision to 3 decimal places
+0.5.108   2010-09-22
+          - Switched to M::B for installs
 
-0.3.103  29/06/2009
-         - Use parent not base
-         - Not using Readonly
+0.4.106   2010-09-22
+          - Increased prescision to 3 decimal places
 
-0.3.94   12/06/2009
-         - Improved testing idiom
-         - Updated POD Coverage tests
+0.3.103   29/06/2009
+          - Use parent not base
+          - Not using Readonly
 
-0.2.81   05/04/2009
-         - More crap for CPAN testers
+0.3.94    12/06/2009
+          - Improved testing idiom
+          - Updated POD Coverage tests
 
-0.2.76   23/03/2009
-         - Improved CPAN testing detection
+0.2.81    05/04/2009
+          - More crap for CPAN testers
 
-0.2.75   14/11/2008
-         - Added Test::Pod dependency to avoid NOTESTS NAs
+0.2.76    23/03/2009
+          - Improved CPAN testing detection
 
-0.2.71   13/11/2008
-         - New approach to CPAN testing
+0.2.75    14/11/2008
+          - Added Test::Pod dependency to avoid NOTESTS NAs
 
-0.2.70   26/10/2008
-         - Tried to find the CPAN testers off switch again
+0.2.71    13/11/2008
+          - New approach to CPAN testing
 
-0.2.66   18/10/2008
-         - Tried to find the CPAN testers off switch
+0.2.70    26/10/2008
+          - Tried to find the CPAN testers off switch again
 
-         06/09/2008
-         - Tweaked POD. Bumping release to fix broken CPAN Testers database
+0.2.66    18/10/2008
+          - Tried to find the CPAN testers off switch
 
-         02/06/2008
-         - Made version a build requirement
+          06/09/2008
+          - Tweaked POD. Bumping release to fix broken CPAN Testers database
 
-         23/05/2008
-         - Added POD and POD coverage tests
+          02/06/2008
+          - Made version a build requirement
 
-         19/05/2008
-         - Added limit to size of returned list
-         - Added sortable output fields
+          23/05/2008
+          - Added POD and POD coverage tests
+
+          19/05/2008
+          - Added limit to size of returned list
+          - Added sortable output fields

@@ -1,10 +1,10 @@
-# @(#)$Id$
+# @(#)Ident: CloudWeights.pm 2013-05-16 21:41 pjf ;
 
 package Data::CloudWeights;
 
-use strict;
+use 5.01;
 use namespace::autoclean;
-use version; our $VERSION = qv( sprintf '0.7.%d', q$Rev$ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.7.%d', q$Rev: 1 $ =~ /\d+/gmx );
 
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -218,7 +218,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-0.7.$Rev$
+Describes version v0.7.$Rev: 1 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
