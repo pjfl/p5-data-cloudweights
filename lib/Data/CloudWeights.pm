@@ -1,10 +1,10 @@
-# @(#)Ident: CloudWeights.pm 2013-05-16 21:41 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-05-16 21:50 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
 use namespace::autoclean;
-use version; our $VERSION = qv( sprintf '0.8.%d', q$Rev: 1 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.8.%d', q$Rev: 2 $ =~ /\d+/gmx );
 
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -203,9 +203,6 @@ sub _get_sort_method {
 
 __PACKAGE__->meta->make_immutable;
 
-no Moose::Util::TypeConstraints;
-no Moose;
-
 1;
 
 __END__
@@ -218,7 +215,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.8.$Rev: 1 $ of L<Data::CloudWeights>
+Describes version v0.8.$Rev: 2 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 

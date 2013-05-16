@@ -1,6 +1,7 @@
 Revision history for Data::CloudWeights
 
-0.8.1     2013-05-16 22:44:10
+0.8.2     2013-05-16 22:51:23
+          - Fixed type in Build.PL
           - Converted from SVN to Git
 
 0.7.144   2012-09-06
