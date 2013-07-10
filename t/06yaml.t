@@ -1,4 +1,4 @@
-# @(#)Ident: 02pod.t 2013-07-10 11:03 pjf ;
+# @(#)Ident: 06yaml.t 2013-07-10 11:02 pjf ;
 
 use strict;
 use warnings;
@@ -11,14 +11,16 @@ use English qw(-no_match_vars);
 use Test::More;
 
 BEGIN {
-   $ENV{AUTHOR_TESTING} or plan skip_all => 'POD test only for developers';
+   $ENV{AUTHOR_TESTING} or plan skip_all => 'YAML test only for developers';
 }
 
-eval "use Test::Pod 1.14";
+eval { require Test::YAML::Meta; };
 
-$EVAL_ERROR and plan skip_all => 'Test::Pod 1.14 required';
+$EVAL_ERROR and plan skip_all => 'Test::YAML::Meta not installed';
 
-all_pod_files_ok();
+Test::YAML::Meta->import();
+
+meta_yaml_ok();
 
 # Local Variables:
 # mode: perl

@@ -1,18 +1,20 @@
-# @(#)Ident: Build.PL 2013-05-16 21:49 pjf ;
+# @(#)Ident: Build.PL 2013-07-10 12:07 pjf ;
 
 use strict;
 use warnings;
 use inc::Bob; # Module::Build subclass
-use version; our $VERSION = qv( sprintf '0.8.%d', q$Rev: 2 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 1 $ =~ /\d+/gmx );
 
 Bob->new( {
    module    => q(Data::CloudWeights),
    home_page => q(http://www.roxsoft.co.uk),
    requires  => {
       'perl'                 => 5.01,
-      'namespace::autoclean' => 0.13,
+      'namespace::sweep'     => 0.006,
       'Color::Spectrum'      => 1.06,
-      'Moose'                => 2.0802, },
+      'Moo'                  => 1.002000,
+      'Type::Tiny'           => 0.012,
+      'Unexpected'           => q(0.4.0), },
    recommends                => {
       'App::cpanminus'       => 1.6005, },
    configure_requires        => {

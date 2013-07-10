@@ -4,7 +4,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 # Version
 
-Describes version v0.8.$Rev: 1 $ of [Data::CloudWeights](https://metacpan.org/module/Data::CloudWeights)
+Describes version v0.9.$Rev: 1 $ of [Data::CloudWeights](https://metacpan.org/module/Data::CloudWeights)
 
 # Synopsis
 
@@ -168,7 +168,9 @@ None
 # Dependencies
 
 - [Color::Spectrum](https://metacpan.org/module/Color::Spectrum)
-- [Moose](https://metacpan.org/module/Moose)
+- [Moo](https://metacpan.org/module/Moo)
+- [Type::Tiny](https://metacpan.org/module/Type::Tiny)
+- [Unexpected](https://metacpan.org/module/Unexpected)
 
 # Incompatibilities
 
@@ -186,7 +188,7 @@ Peter Flanigan, `<pjfl@cpan.org>`
 
 # License and Copyright
 
-Copyright (c) 2008-2012 Peter Flanigan. All rights reserved
+Copyright (c) 2013 Peter Flanigan. All rights reserved
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See [perlartistic](https://metacpan.org/module/perlartistic)

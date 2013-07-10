@@ -1,67 +1,65 @@
-# @(#)Ident: CloudWeights.pm 2013-05-16 21:50 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-07-10 12:14 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
-use namespace::autoclean;
-use version; our $VERSION = qv( sprintf '0.8.%d', q$Rev: 2 $ =~ /\d+/gmx );
+use namespace::sweep;
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 1 $ =~ /\d+/gmx );
 
-use Moose;
-use Moose::Util::TypeConstraints;
 use Color::Spectrum;
+use Moo;
+use Type::Utils             qw( as enum subtype where );
+use Unexpected::Types       qw( ArrayRef HashRef Int Maybe Num Str );
 
-enum 'Data::CloudWeights::Sort_Order' => qw(asc desc);
-enum 'Data::CloudWeights::Sort_Type'  => qw(alpha numeric);
+my $COLOUR     = subtype as Str, where { not $_ or '#' eq substr $_, 0, 1 };
+my $SORT_ORDER = enum 'Sort_Order' => [ qw( asc desc      ) ];
+my $SORT_TYPE  = enum 'Sort_Type'  => [ qw( alpha numeric ) ];
 
-subtype 'Data::CloudWeights::Colour'  => as 'Str' =>
-   where { not $_ or '#' eq substr $_, 0, 1 };
-
-has 'cold_colour'    => is => 'ro', isa => 'Maybe[Data::CloudWeights::Colour]',
+has 'cold_colour'    => is => 'ro', isa => Maybe[$COLOUR],
    documentation     => 'Blue', default => '#0000FF';
 
-has 'hot_colour'     => is => 'ro', isa => 'Maybe[Data::CloudWeights::Colour]',
+has 'hot_colour'     => is => 'ro', isa => Maybe[$COLOUR],
    documentation     => 'Red', default => '#FF0000';
 
-has 'colour_pallet'  => is => 'rw',
-   isa               => 'ArrayRef[Data::CloudWeights::Colour]',
+has 'colour_pallet'  => is => 'rw', isa => ArrayRef[$COLOUR],
    documentation     => 'Alternative to colour calculation',
    default           => sub { [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
                                 '#00FFFF', '#66FFCC', '#66CC99', '#006600',
                                 '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ] };
 
-has 'decimal_places' => is => 'rw', isa => 'Int', default => 3,
+has 'decimal_places' => is => 'rw', isa => Int, default => 3,
    documentation     => 'Defaults for ems';
 
-has 'limit'          => is => 'rw', isa => 'Int', default => 0,
+has 'limit'          => is => 'rw', isa => Int, default => 0,
    documentation     => 'Max size of returned list. Zero no limit';
 
-has 'max_count'      => is => 'rw', isa => 'Int', default => 0,
+has 'max_count'      => is => 'rw', isa => Int, default => 0,
    documentation     => 'Current max value across all tags cloud';
 
-has 'max_size'       => is => 'rw', isa => 'Num', default => 3.0,
+has 'max_size'       => is => 'rw', isa => Num, default => 3.0,
    documentation     => 'Output size no more than';
 
-has 'min_count'      => is => 'rw', isa => 'Int', default => -1,
+has 'min_count'      => is => 'rw', isa => Int, default => -1,
    documentation     => 'Current min';
 
-has 'min_size'       => is => 'rw', isa => 'Num', default => 1.0,
+has 'min_size'       => is => 'rw', isa => Num, default => 1.0,
    documentation     => 'Output size no less than';
 
-has 'sort_field'     => is => 'rw', isa => 'Maybe[Str]', default => 'tag',
+has 'sort_field'     => is => 'rw', isa => Maybe[Str], default => 'tag',
    documentation     => 'Output sorted by this field';
 
-has 'sort_order'     => is => 'rw', isa => 'Data::CloudWeights::Sort_Order',
+has 'sort_order'     => is => 'rw', isa => $SORT_ORDER,
    documentation     => 'Sort order - asc or desc', default => 'asc';
 
-has 'sort_type'      => is => 'rw', isa => 'Data::CloudWeights::Sort_Type',
+has 'sort_type'      => is => 'rw', isa => $SORT_TYPE,
    documentation     => 'Sort type - alpha or numeric',
    default           => 'alpha';
 
-has 'total_count'    => is => 'rw', isa => 'Int', default => 0,
+has 'total_count'    => is => 'rw', isa => Int, default => 0,
    documentation     => 'Current total for all tags in the cloud';
 
-has '_index' => is => 'ro', isa => 'HashRef',  default => sub { {} };
-has '_sorts' => is => 'ro', isa => 'HashRef',  default => sub { {
+has '_index' => is => 'ro', isa => HashRef, default => sub { {} };
+has '_sorts' => is => 'ro', isa => HashRef, default => sub { {
    alpha   => {
       asc  => sub { my $x = shift; sub { $_[ 0 ]->{ $x } cmp $_[ 1 ]->{ $x } }
       },
@@ -74,7 +72,7 @@ has '_sorts' => is => 'ro', isa => 'HashRef',  default => sub { {
       desc => sub { my $x = shift; sub { $_[ 1 ]->{ $x } <=> $_[ 0 ]->{ $x } }
       },
    } } };
-has '_tags'  => is => 'ro', isa => 'ArrayRef', default => sub { [] };
+has '_tags'  => is => 'ro', isa => ArrayRef, default => sub { [] };
 
 sub BUILD {
    my $self = shift;
@@ -91,8 +89,7 @@ sub BUILD {
    return;
 }
 
-sub add {
-   # Include the passed args in this cloud's formation
+sub add { # Include the passed args in this cloud's formation
    my ($self, $tag, $count, $value) = @_;
 
    $tag or return; # Mandatory arg used as a key in tag ref index
@@ -137,8 +134,7 @@ sub add {
    return $count;
 }
 
-sub formation {
-   # Calculate the result set for this cloud
+sub formation { # Calculate the result set for this cloud
    my $self    = shift;
    my $prec    = 10**$self->decimal_places;
    my $bands   = scalar @{ $self->colour_pallet } - 1;
@@ -181,10 +177,8 @@ sub formation {
    return $out;
 }
 
-# Private methods begin with _
-
-sub _get_sort_method {
-   # Multiple calls to add were made, determine the sorting method
+# Private methods
+sub _get_sort_method { # Add called multiple times, determine the sorting method
    my $self = shift;
 
    # No sorting if sort field is false
@@ -201,13 +195,13 @@ sub _get_sort_method {
         : $orderby;
 }
 
-__PACKAGE__->meta->make_immutable;
-
 1;
 
 __END__
 
 =pod
+
+=encoding utf8
 
 =head1 Name
 
@@ -215,7 +209,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.8.$Rev: 2 $ of L<Data::CloudWeights>
+Describes version v0.9.$Rev: 1 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
@@ -390,7 +384,11 @@ I lifted the sorting code from here
 
 =item L<Color::Spectrum>
 
-=item L<Moose>
+=item L<Moo>
+
+=item L<Type::Tiny>
+
+=item L<Unexpected>
 
 =back
 
@@ -410,7 +408,7 @@ Peter Flanigan, C<< <pjfl@cpan.org> >>
 
 =head1 License and Copyright
 
-Copyright (c) 2008-2012 Peter Flanigan. All rights reserved
+Copyright (c) 2013 Peter Flanigan. All rights reserved
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See L<perlartistic>

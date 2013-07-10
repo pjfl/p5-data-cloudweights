@@ -1,22 +1,25 @@
-# @(#)Ident: 10base.t 2013-05-16 21:40 pjf ;
+# @(#)Ident: 10test_script.t 2013-07-10 12:03 pjf ;
 
 use strict;
 use warnings;
-use version; our $VERSION = qv( sprintf '0.8.%d', q$Rev: 1 $ =~ /\d+/gmx );
-use File::Spec::Functions;
-use FindBin qw( $Bin );
-use lib catdir( $Bin, updir, q(lib) );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 0 $ =~ /\d+/gmx );
+use File::Spec::Functions   qw( catdir updir );
+use FindBin                 qw( $Bin );
+use lib                 catdir( $Bin, updir, 'lib' );
 
 use Module::Build;
 use Test::More;
 
+my $reason;
+
 BEGIN {
-   my $current = eval { Module::Build->current };
-   $current and $current->notes->{stop_tests}
-            and plan skip_all => $current->notes->{stop_tests};
+   my $builder = eval { Module::Build->current };
+
+   $builder and $reason = $builder->notes->{stop_tests};
+   $reason  and $reason =~ m{ \A TESTS: }mx and plan skip_all => $reason;
 }
 
-use English qw(-no_match_vars);
+use English qw( -no_match_vars );
 use Data::CloudWeights;
 
 my $cloud = Data::CloudWeights->new;
