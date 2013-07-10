@@ -1,63 +1,63 @@
-# @(#)Ident: CloudWeights.pm 2013-07-10 12:14 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-07-10 15:41 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
 use namespace::sweep;
-use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 1 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 2 $ =~ /\d+/gmx );
 
 use Color::Spectrum;
 use Moo;
-use Type::Utils             qw( as enum subtype where );
-use Unexpected::Types       qw( ArrayRef HashRef Int Maybe Num Str );
+use Type::Utils             qw( as enum message subtype where );
+use Types::Standard         qw( ArrayRef HashRef Int Maybe Num Str );
 
-my $COLOUR     = subtype as Str, where { not $_ or '#' eq substr $_, 0, 1 };
+my $COLOUR     = subtype 'Colour', as Str,
+   where { not $_ or $_ =~ m{ \A \# [0-9A-Fa-f]+ \z }mx };
 my $SORT_ORDER = enum 'Sort_Order' => [ qw( asc desc      ) ];
 my $SORT_TYPE  = enum 'Sort_Type'  => [ qw( alpha numeric ) ];
 
-has 'cold_colour'    => is => 'ro', isa => Maybe[$COLOUR],
+# Public attributes
+has 'cold_colour'    => is => 'ro',   isa => Maybe[$COLOUR],
    documentation     => 'Blue', default => '#0000FF';
 
-has 'hot_colour'     => is => 'ro', isa => Maybe[$COLOUR],
+has 'hot_colour'     => is => 'ro',   isa => Maybe[$COLOUR],
    documentation     => 'Red', default => '#FF0000';
 
-has 'colour_pallet'  => is => 'rw', isa => ArrayRef[$COLOUR],
-   documentation     => 'Alternative to colour calculation',
-   default           => sub { [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
-                                '#00FFFF', '#66FFCC', '#66CC99', '#006600',
-                                '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ] };
+has 'colour_pallet'  => is => 'lazy', isa => ArrayRef[$COLOUR],
+   documentation     => 'Alternative to colour calculation';
 
-has 'decimal_places' => is => 'rw', isa => Int, default => 3,
+has 'decimal_places' => is => 'rw',   isa => Int, default => 3,
    documentation     => 'Defaults for ems';
 
-has 'limit'          => is => 'rw', isa => Int, default => 0,
+has 'limit'          => is => 'rw',   isa => Int, default => 0,
    documentation     => 'Max size of returned list. Zero no limit';
 
-has 'max_count'      => is => 'rw', isa => Int, default => 0,
+has 'max_count'      => is => 'rw',   isa => Int, default => 0,
    documentation     => 'Current max value across all tags cloud';
 
-has 'max_size'       => is => 'rw', isa => Num, default => 3.0,
+has 'max_size'       => is => 'rw',   isa => Num, default => 3.0,
    documentation     => 'Output size no more than';
 
-has 'min_count'      => is => 'rw', isa => Int, default => -1,
+has 'min_count'      => is => 'rw',   isa => Int, default => -1,
    documentation     => 'Current min';
 
-has 'min_size'       => is => 'rw', isa => Num, default => 1.0,
+has 'min_size'       => is => 'rw',   isa => Num, default => 1.0,
    documentation     => 'Output size no less than';
 
-has 'sort_field'     => is => 'rw', isa => Maybe[Str], default => 'tag',
+has 'sort_field'     => is => 'rw',   isa => Maybe[Str], default => 'tag',
    documentation     => 'Output sorted by this field';
 
-has 'sort_order'     => is => 'rw', isa => $SORT_ORDER,
+has 'sort_order'     => is => 'rw',   isa => $SORT_ORDER,
    documentation     => 'Sort order - asc or desc', default => 'asc';
 
-has 'sort_type'      => is => 'rw', isa => $SORT_TYPE,
+has 'sort_type'      => is => 'rw',   isa => $SORT_TYPE,
    documentation     => 'Sort type - alpha or numeric',
    default           => 'alpha';
 
-has 'total_count'    => is => 'rw', isa => Int, default => 0,
+has 'total_count'    => is => 'rw',   isa => Int, default => 0,
    documentation     => 'Current total for all tags in the cloud';
 
+# Private attributes
 has '_index' => is => 'ro', isa => HashRef, default => sub { {} };
 has '_sorts' => is => 'ro', isa => HashRef, default => sub { {
    alpha   => {
@@ -74,21 +74,7 @@ has '_sorts' => is => 'ro', isa => HashRef, default => sub { {
    } } };
 has '_tags'  => is => 'ro', isa => ArrayRef, default => sub { [] };
 
-sub BUILD {
-   my $self = shift;
-
-   # Unsetting hot or cold colour strings in the constructor will cause
-   # the default pallet to be used instead
-   if ($self->cold_colour and $self->hot_colour) {
-      my $cs = Color::Spectrum->new();
-
-      $self->colour_pallet( [ $cs->generate( 12, $self->cold_colour,
-                                             $self->hot_colour ) ] );
-   }
-
-   return;
-}
-
+# Public methods
 sub add { # Include the passed args in this cloud's formation
    my ($self, $tag, $count, $value) = @_;
 
@@ -178,6 +164,20 @@ sub formation { # Calculate the result set for this cloud
 }
 
 # Private methods
+sub _build_colour_pallet {
+   my $self = shift;
+
+   # Unsetting hot or cold colour strings in the constructor will cause
+   # the default pallet to be used instead
+   $self->cold_colour and $self->hot_colour
+      and return [ Color::Spectrum->new->generate( 12, $self->cold_colour,
+                                                   $self->hot_colour ) ];
+
+   return [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
+            '#00FFFF', '#66FFCC', '#66CC99', '#006600',
+            '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ];
+}
+
 sub _get_sort_method { # Add called multiple times, determine the sorting method
    my $self = shift;
 
@@ -209,7 +209,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.9.$Rev: 1 $ of L<Data::CloudWeights>
+Describes version v0.9.$Rev: 2 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
