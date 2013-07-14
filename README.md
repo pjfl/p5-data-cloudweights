@@ -4,7 +4,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 # Version
 
-Describes version v0.9.$Rev: 3 $ of [Data::CloudWeights](https://metacpan.org/module/Data::CloudWeights)
+Describes version v0.9.$Rev: 4 $ of [Data::CloudWeights](https://metacpan.org/module/Data::CloudWeights)
 
 # Synopsis
 
@@ -165,12 +165,15 @@ None
 
     I lifted the sorting code from here
 
+- [Color::Spectrum](https://metacpan.org/module/Color::Spectrum)
+
+    I copied the colour value manipulation code from here after this
+    distribution started failing tests on 5.18
+
 # Dependencies
 
-- [Color::Spectrum](https://metacpan.org/module/Color::Spectrum)
 - [Moo](https://metacpan.org/module/Moo)
 - [Type::Tiny](https://metacpan.org/module/Type::Tiny)
-- [Unexpected](https://metacpan.org/module/Unexpected)
 
 # Incompatibilities
 

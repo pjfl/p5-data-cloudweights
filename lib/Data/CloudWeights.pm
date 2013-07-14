@@ -1,10 +1,10 @@
-# @(#)Ident: CloudWeights.pm 2013-07-14 22:08 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-07-14 22:18 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
 use namespace::sweep;
-use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 3 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 4 $ =~ /\d+/gmx );
 
 use Moo;
 use POSIX;
@@ -283,7 +283,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.9.$Rev: 3 $ of L<Data::CloudWeights>
+Describes version v0.9.$Rev: 4 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
@@ -450,19 +450,20 @@ This did not let me calculate font sizes in ems
 
 I lifted the sorting code from here
 
+=item L<Color::Spectrum>
+
+I copied the colour value manipulation code from here after this
+distribution started failing tests on 5.18
+
 =back
 
 =head1 Dependencies
 
 =over 3
 
-=item L<Color::Spectrum>
-
 =item L<Moo>
 
 =item L<Type::Tiny>
-
-=item L<Unexpected>
 
 =back
 
