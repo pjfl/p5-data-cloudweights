@@ -1,9 +1,9 @@
-# @(#)Ident: Build.PL 2013-07-10 15:00 pjf ;
+# @(#)Ident: Build.PL 2013-07-14 22:06 pjf ;
 
 use strict;
 use warnings;
 use inc::Bob; # Module::Build subclass
-use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 2 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 3 $ =~ /\d+/gmx );
 
 Bob->new( {
    module    => q(Data::CloudWeights),
@@ -11,7 +11,6 @@ Bob->new( {
    requires  => {
       'perl'             => 5.01,
       'namespace::sweep' => 0.006,
-      'Color::Spectrum'  => 1.06,
       'Moo'              => 1.002000,
       'Type::Tiny'       => 0.012, },
    recommends            => {

@@ -1,13 +1,13 @@
-# @(#)Ident: CloudWeights.pm 2013-07-10 15:41 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-07-14 22:08 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
 use namespace::sweep;
-use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 2 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 3 $ =~ /\d+/gmx );
 
-use Color::Spectrum;
 use Moo;
+use POSIX;
 use Type::Utils             qw( as enum message subtype where );
 use Types::Standard         qw( ArrayRef HashRef Int Maybe Num Str );
 
@@ -170,12 +170,53 @@ sub _build_colour_pallet {
    # Unsetting hot or cold colour strings in the constructor will cause
    # the default pallet to be used instead
    $self->cold_colour and $self->hot_colour
-      and return [ Color::Spectrum->new->generate( 12, $self->cold_colour,
-                                                   $self->hot_colour ) ];
+      and return [ _generate( 12, $self->cold_colour, $self->hot_colour ) ];
 
    return [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
             '#00FFFF', '#66FFCC', '#66CC99', '#006600',
             '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ];
+}
+
+sub _generate { # Robbed from Color::Spectrum since it's abandoned
+   my ($cnt, $col1, $col2) = @_; $col2 ||= $col1; my @murtceps;
+
+   push @murtceps, uc $col1; my $pound = $col1 =~ /^\#/ ? '#' : q();
+
+   $col1 =~s/^\#//; $col2 =~s/^\#//;
+
+   my $clockwise = 0; $cnt < 0 and $clockwise++;
+
+   $cnt = int( abs( $cnt ) );
+
+   $cnt <= 1 and return ( wantarray() ? @murtceps : \@murtceps );
+   $cnt == 2 and
+      return ( wantarray() ? ( "#$col1", "#$col2" ) : [ "#$col1", "#$col2" ] );
+
+   # The RGB values need to be on the decimal scale,
+   # so we divide em by 255 enpassant.
+   my ( $h1, $s1, $i1 )
+      = _rgb2hsi( map { hex() / 255 } unpack( 'a2a2a2', $col1 ) );
+   my ( $h2, $s2, $i2 )
+      = _rgb2hsi( map { hex() / 255 } unpack( 'a2a2a2', $col2 ) );
+
+   $cnt--; my $sd = ( $s2 - $s1 ) / $cnt; my $id = ( $i2 - $i1 ) / $cnt;
+
+   my $hd = $h2 - $h1;
+
+   $hd = ( uc( $col1 ) eq uc( $col2 ) )
+       ? ( $clockwise ? -1 : 1 ) / $cnt
+       : ( ( $hd < 0 ? 1 : 0 ) + $hd - $clockwise) / $cnt;
+
+   while (--$cnt) {
+      $s1 += $sd; $i1 += $id; $h1 += $hd;
+      $h1 > 1 and $h1 -= 1; $h1 < 0 and $h1 += 1;
+      push @murtceps, sprintf "${pound}%02X%02X%02X",
+         map { int( $_ * 255 + 0.5 ) } _hsi2rgb( $h1, $s1, $i1 );
+   }
+
+   push @murtceps, uc "${pound}${col2}";
+
+   return wantarray() ? @murtceps : \@murtceps;
 }
 
 sub _get_sort_method { # Add called multiple times, determine the sorting method
@@ -195,6 +236,39 @@ sub _get_sort_method { # Add called multiple times, determine the sorting method
         : $orderby;
 }
 
+sub _rgb2hsi {
+   my ( $r, $g, $b ) = @_; my ( $h, $s, $i ) = ( 0, 0, 0 );
+
+   $i = ( $r + $g + $b ) / 3; $i == 0 and return ( $h, $s, $i );
+
+   my $x = $r - 0.5 * ( $g + $b ); my $y = 0.866025403 * ( $g - $b );
+
+   $s = ( $x ** 2 + $y ** 2 ) ** 0.5; $s == 0 and return ( $h, $s, $i );
+
+   $h = POSIX::atan2( $y , $x ) / ( 2 * 3.1415926535 );
+
+   return ( $h, $s, $i );
+}
+
+sub _hsi2rgb {
+   my ( $h, $s, $i ) =  @_; my ( $r, $g, $b ) = ( 0, 0, 0 );
+
+   # Degenerate cases. If !intensity it's black, if !saturation it's grey
+   $i == 0 and return ( $r, $g, $b ); $s == 0 and return ( $i, $i, $i );
+
+   $h = $h * 2 * 3.1415926535;
+
+   my $x = $s * cos( $h ); my $y = $s * sin( $h );
+
+   $r = $i + ( 2 / 3 * $x );
+   $g = $i - ( $x / 3 ) + ( $y / 2 / 0.866025403 );
+   $b = $i - ( $x / 3 ) - ( $y / 2 / 0.866025403 );
+   # Limit 0<=x<=1  ## YUCK but we go outta range without it.
+   ( $r, $b, $g ) = map { $_ < 0 ? 0 : $_ > 1 ? 1 : $_ } ( $r, $b, $g );
+
+   return ( $r, $g, $b );
+}
+
 1;
 
 __END__
@@ -209,7 +283,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.9.$Rev: 2 $ of L<Data::CloudWeights>
+Describes version v0.9.$Rev: 3 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
