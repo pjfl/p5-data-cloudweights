@@ -1,10 +1,10 @@
-# @(#)Ident: CloudWeights.pm 2013-07-14 22:18 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-07-15 12:39 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
 use namespace::sweep;
-use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 4 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.9.%d', q$Rev: 5 $ =~ /\d+/gmx );
 
 use Moo;
 use POSIX;
@@ -283,7 +283,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.9.$Rev: 4 $ of L<Data::CloudWeights>
+Describes version v0.9.$Rev: 5 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 

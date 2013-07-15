@@ -1,6 +1,10 @@
 Revision history for Data::CloudWeights
 
-0.9.4     2013-07-14 23:19:09
+0.9.5     2013-07-15 13:39:39
+          - Excluded Jason Clifford from CPAN Testing
+            21ecef88-ea3c-11e2-9b36-562531b64f85
+          - Excluded C Thomas from CPAN Testing
+            8d51a280-e872-11e2-9fd4-a5333fc76d31
           - POD Updates
           - Dropped Color::Spectrum dependency
           - Dropped Unexpected dependency
