@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.11.1    2013-08-21 21:18:15
+          - Fixed metadata after change to DZ
+
 0.10.1    2013-08-15 16:09:33
           - Truncated changelog to fix date format
           - Switched to Dist::Zilla
