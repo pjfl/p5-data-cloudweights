@@ -1,10 +1,10 @@
-# @(#)Ident: CloudWeights.pm 2013-07-15 12:39 pjf ;
+# @(#)Ident: CloudWeights.pm 2013-08-22 22:38 pjf ;
 
 package Data::CloudWeights;
 
 use 5.01;
 use namespace::sweep;
-use version; our $VERSION = qv( sprintf '0.11.%d', q$Rev: 1 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.12.%d', q$Rev: 1 $ =~ /\d+/gmx );
 
 use Moo;
 use POSIX;
@@ -102,7 +102,7 @@ sub add { # Include the passed args in this cloud's formation
          my $tag_value = $index->{value};
 
          # Make an array if there are two or more calls to add the same tag
-         $tag_value and ref $tag_value ne q(ARRAY)
+         $tag_value and ref $tag_value ne 'ARRAY'
             and $index->{value} = [ $tag_value ];
 
          # Push passed value in each call onto the values array.
@@ -231,7 +231,7 @@ sub _get_sort_method { # Add called multiple times, determine the sorting method
                               ->{ lc $self->sort_order }->( $field );
 
    # Protect against wrong sort type for the data
-   return $field ne q(tag)
+   return $field ne 'tag'
         ? sub { return $orderby->( @_ ) || $_[ 0 ]->{tag} cmp $_[ 1 ]->{tag} }
         : $orderby;
 }
@@ -283,7 +283,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.11.$Rev: 1 $ of L<Data::CloudWeights>
+Describes version v0.12.$Rev: 1 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 

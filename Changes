@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.12.1    2013-09-03 15:05:13
+          - Bumped version dependencies
+
 0.11.1    2013-08-21 21:18:15
           - Fixed metadata after change to DZ
 
