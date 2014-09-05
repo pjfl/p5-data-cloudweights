@@ -1,15 +1,13 @@
-# @(#)Ident: CloudWeights.pm 2013-08-22 22:38 pjf ;
-
 package Data::CloudWeights;
 
 use 5.01;
-use namespace::sweep;
-use version; our $VERSION = qv( sprintf '0.12.%d', q$Rev: 2 $ =~ /\d+/gmx );
+use namespace::autoclean;
+use version; our $VERSION = qv( sprintf '0.12.%d', q$Rev: 3 $ =~ /\d+/gmx );
 
 use Moo;
 use POSIX;
-use Type::Utils             qw( as enum message subtype where );
-use Types::Standard         qw( ArrayRef HashRef Int Maybe Num Str );
+use Type::Utils     qw( as enum message subtype where );
+use Types::Standard qw( ArrayRef HashRef Int Maybe Num Str );
 
 my $COLOUR     = subtype 'Colour', as Str,
    where { not $_ or $_ =~ m{ \A \# [0-9A-Fa-f]+ \z }mx };
@@ -184,13 +182,12 @@ sub _generate { # Robbed from Color::Spectrum since it's abandoned
 
    $col1 =~s/^\#//; $col2 =~s/^\#//;
 
-   my $clockwise = 0; $cnt < 0 and $clockwise++;
-
-   $cnt = int( abs( $cnt ) );
+   my $clockwise = 0; $cnt < 0 and $clockwise++; $cnt = int( abs( $cnt ) );
 
    $cnt <= 1 and return ( wantarray() ? @murtceps : \@murtceps );
-   $cnt == 2 and
-      return ( wantarray() ? ( "#$col1", "#$col2" ) : [ "#$col1", "#$col2" ] );
+   $cnt == 2 and return ( wantarray()
+                          ? ( "${pound}${col1}", "${pound}${col2}" )
+                          : [ "${pound}${col1}", "${pound}${col2}" ] );
 
    # The RGB values need to be on the decimal scale,
    # so we divide em by 255 enpassant.
@@ -283,7 +280,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.12.$Rev: 2 $ of L<Data::CloudWeights>
+Describes version v0.12.$Rev: 3 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
