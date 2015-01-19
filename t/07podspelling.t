@@ -39,3 +39,4 @@ done_testing();
 __DATA__
 peter
 flanigan
+merchantability
