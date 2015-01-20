@@ -2,7 +2,7 @@ package Data::CloudWeights;
 
 use 5.01;
 use namespace::autoclean;
-use version; our $VERSION = qv( sprintf '0.13.%d', q$Rev: 1 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.14.%d', q$Rev: 1 $ =~ /\d+/gmx );
 
 use Moo;
 use POSIX;
@@ -280,7 +280,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.13.$Rev: 1 $ of L<Data::CloudWeights>
+Describes version v0.14.$Rev: 1 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 

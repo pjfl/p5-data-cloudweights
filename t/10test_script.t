@@ -8,13 +8,13 @@ use Module::Build;
 use Sys::Hostname;
 use Test::More;
 
-my $builder; my $host = lc hostname; my $notes = {}; my $perl_ver;
+my $builder; my $notes = {}; my $perl_ver;
 
 BEGIN {
    $builder  =  eval { Module::Build->current };
    $builder and $notes = $builder->notes;
    $perl_ver =  $notes->{min_perl_version} || 5.008;
-   $notes->{testing} and $host eq 'albie-pc'
+   $notes->{testing} and lc hostname eq 'albie-pc'
       and plan skip_all => 'Broken smoker 0a0d65bf-7a6f-1014-ab5e-171548f0d22a';
 }
 

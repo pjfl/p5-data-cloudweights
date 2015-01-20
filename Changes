@@ -1,5 +1,8 @@
 Revision history for Data::CloudWeights
 
+0.14.1    2015-01-20 13:10:13
+          - Fixed undef warning in tests
+
 0.13.1    2015-01-19 12:56:52
           - Skip tests broken smoker 0a0d65bf-7a6f-1014-ab5e-171548f0d22a
           - Replaced ns::sweep with autoclean
