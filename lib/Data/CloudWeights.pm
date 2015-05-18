@@ -2,17 +2,104 @@ package Data::CloudWeights;
 
 use 5.01;
 use namespace::autoclean;
-use version; our $VERSION = qv( sprintf '0.14.%d', q$Rev: 1 $ =~ /\d+/gmx );
+use version; our $VERSION = qv( sprintf '0.14.%d', q$Rev: 2 $ =~ /\d+/gmx );
 
-use Moo;
 use POSIX;
 use Type::Utils     qw( as enum message subtype where );
 use Types::Standard qw( ArrayRef HashRef Int Maybe Num Str );
+use Moo;
 
 my $COLOUR     = subtype 'Colour', as Str,
-   where { not $_ or $_ =~ m{ \A \# [0-9A-Fa-f]+ \z }mx };
+                 where { not $_ or $_ =~ m{ \A \# [0-9A-Fa-f]+ \z }mx };
 my $SORT_ORDER = enum 'Sort_Order' => [ qw( asc desc      ) ];
 my $SORT_TYPE  = enum 'Sort_Type'  => [ qw( alpha numeric ) ];
+
+# Private functions
+my $_rgb2hsi = sub {
+   my ( $r, $g, $b ) = @_; my ( $h, $s, $i ) = ( 0, 0, 0 );
+
+   $i = ( $r + $g + $b ) / 3; $i == 0 and return ( $h, $s, $i );
+
+   my $x = $r - 0.5 * ( $g + $b ); my $y = 0.866025403 * ( $g - $b );
+
+   $s = ( $x ** 2 + $y ** 2 ) ** 0.5; $s == 0 and return ( $h, $s, $i );
+
+   $h = POSIX::atan2( $y , $x ) / ( 2 * 3.1415926535 );
+
+   return ( $h, $s, $i );
+};
+
+my $_hsi2rgb = sub {
+   my ( $h, $s, $i ) =  @_; my ( $r, $g, $b ) = ( 0, 0, 0 );
+
+   # Degenerate cases. If !intensity it's black, if !saturation it's grey
+   $i == 0 and return ( $r, $g, $b ); $s == 0 and return ( $i, $i, $i );
+
+   $h = $h * 2 * 3.1415926535;
+
+   my $x = $s * cos( $h ); my $y = $s * sin( $h );
+
+   $r = $i + ( 2 / 3 * $x );
+   $g = $i - ( $x / 3 ) + ( $y / 2 / 0.866025403 );
+   $b = $i - ( $x / 3 ) - ( $y / 2 / 0.866025403 );
+   # Limit 0<=x<=1  ## YUCK but we go outta range without it.
+   ( $r, $b, $g ) = map { $_ < 0 ? 0 : $_ > 1 ? 1 : $_ } ( $r, $b, $g );
+
+   return ( $r, $g, $b );
+};
+
+my $_generate = sub { # Robbed from Color::Spectrum since it's abandoned
+   my ($cnt, $col1, $col2) = @_; $col2 ||= $col1; my @murtceps;
+
+   push @murtceps, uc $col1; my $pound = $col1 =~ /^\#/ ? '#' : q();
+
+   $col1 =~s/^\#//; $col2 =~s/^\#//;
+
+   my $clockwise = 0; $cnt < 0 and $clockwise++; $cnt = int( abs( $cnt ) );
+
+   $cnt <= 1 and return ( wantarray() ? @murtceps : \@murtceps );
+   $cnt == 2 and return ( wantarray()
+                          ? ( "${pound}${col1}", "${pound}${col2}" )
+                          : [ "${pound}${col1}", "${pound}${col2}" ] );
+   # The RGB values need to be on the decimal scale,
+   # so we divide em by 255 enpassant.
+   my ( $h1, $s1, $i1 )
+      = $_rgb2hsi->( map { hex() / 255 } unpack( 'a2a2a2', $col1 ) );
+   my ( $h2, $s2, $i2 )
+      = $_rgb2hsi->( map { hex() / 255 } unpack( 'a2a2a2', $col2 ) );
+
+   $cnt--; my $sd = ( $s2 - $s1 ) / $cnt; my $id = ( $i2 - $i1 ) / $cnt;
+
+   my $hd = $h2 - $h1;
+
+   $hd = ( uc( $col1 ) eq uc( $col2 ) )
+       ? ( $clockwise ? -1 : 1 ) / $cnt
+       : ( ( $hd < 0 ? 1 : 0 ) + $hd - $clockwise) / $cnt;
+
+   while (--$cnt) {
+      $s1 += $sd; $i1 += $id; $h1 += $hd;
+      $h1 > 1 and $h1 -= 1; $h1 < 0 and $h1 += 1;
+      push @murtceps, sprintf "${pound}%02X%02X%02X",
+         map { int( $_ * 255 + 0.5 ) } $_hsi2rgb->( $h1, $s1, $i1 );
+   }
+
+   push @murtceps, uc "${pound}${col2}";
+
+   return wantarray() ? @murtceps : \@murtceps;
+};
+
+# Attribute constructors
+my $_build_colour_pallet = sub {
+   my $self = shift;
+   # Unsetting hot or cold colour strings in the constructor will cause
+   # the default pallet to be used instead
+   $self->cold_colour and $self->hot_colour
+      and return [ $_generate->( 12, $self->cold_colour, $self->hot_colour ) ];
+
+   return [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
+            '#00FFFF', '#66FFCC', '#66CC99', '#006600',
+            '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ];
+};
 
 # Public attributes
 has 'cold_colour'    => is => 'ro',   isa => Maybe[$COLOUR],
@@ -22,24 +109,25 @@ has 'hot_colour'     => is => 'ro',   isa => Maybe[$COLOUR],
    documentation     => 'Red', default => '#FF0000';
 
 has 'colour_pallet'  => is => 'lazy', isa => ArrayRef[$COLOUR],
-   documentation     => 'Alternative to colour calculation';
+   documentation     => 'Alternative to colour calculation',
+   builder           => $_build_colour_pallet;
 
-has 'decimal_places' => is => 'rw',   isa => Int, default => 3,
+has 'decimal_places' => is => 'ro',   isa => Int, default => 3,
    documentation     => 'Defaults for ems';
 
 has 'limit'          => is => 'rw',   isa => Int, default => 0,
    documentation     => 'Max size of returned list. Zero no limit';
 
-has 'max_count'      => is => 'rw',   isa => Int, default => 0,
+has 'max_count'      => is => 'rwp',  isa => Int, default => 0,
    documentation     => 'Current max value across all tags cloud';
 
-has 'max_size'       => is => 'rw',   isa => Num, default => 3.0,
+has 'max_size'       => is => 'rwp',  isa => Num, default => 3.0,
    documentation     => 'Output size no more than';
 
-has 'min_count'      => is => 'rw',   isa => Int, default => -1,
+has 'min_count'      => is => 'rwp',  isa => Int, default => -1,
    documentation     => 'Current min';
 
-has 'min_size'       => is => 'rw',   isa => Num, default => 1.0,
+has 'min_size'       => is => 'rwp',  isa => Num, default => 1.0,
    documentation     => 'Output size no less than';
 
 has 'sort_field'     => is => 'rw',   isa => Maybe[Str], default => 'tag',
@@ -52,7 +140,7 @@ has 'sort_type'      => is => 'rw',   isa => $SORT_TYPE,
    documentation     => 'Sort type - alpha or numeric',
    default           => 'alpha';
 
-has 'total_count'    => is => 'rw',   isa => Int, default => 0,
+has 'total_count'    => is => 'rwp',  isa => Int, default => 0,
    documentation     => 'Current total for all tags in the cloud';
 
 # Private attributes
@@ -72,6 +160,22 @@ has '_sorts' => is => 'ro', isa => HashRef, default => sub { {
    } } };
 has '_tags'  => is => 'ro', isa => ArrayRef, default => sub { [] };
 
+# Private methods
+my $_get_sort_method = sub {
+   my $self  = shift; # Add called multiple times, determine the sorting method
+   # No sorting if sort field is false
+   my $field = $self->sort_field or return sub { return 0 };
+
+   ref $field and return $field; # User supplied subroutine
+
+   my $orderby = $self->_sorts->{ lc $self->sort_type  }
+                              ->{ lc $self->sort_order }->( $field );
+   # Protect against wrong sort type for the data
+   return $field ne 'tag'
+        ? sub { return $orderby->( @_ ) || $_[ 0 ]->{tag} cmp $_[ 1 ]->{tag} }
+        : $orderby;
+};
+
 # Public methods
 sub add { # Include the passed args in this cloud's formation
    my ($self, $tag, $count, $value) = @_;
@@ -82,7 +186,7 @@ sub add { # Include the passed args in this cloud's formation
    $count = defined $count ? abs $count : 0;
 
    # Add this count to the total for this cloud
-   $self->total_count( $self->total_count + $count );
+   $self->_set_total_count( $self->total_count + $count );
 
    if (not exists $self->_index->{ $tag }) {
       # Create a new tag reference and add to both list and index
@@ -110,9 +214,9 @@ sub add { # Include the passed args in this cloud's formation
    }
 
    # Update this cloud's max and min values
-   $count > $self->max_count and $self->max_count( $count );
-   $self->min_count == -1    and $self->min_count( $count );
-   $count < $self->min_count and $self->min_count( $count );
+   $count > $self->max_count and $self->_set_max_count( $count );
+   $self->min_count == -1    and $self->_set_min_count( $count );
+   $count < $self->min_count and $self->_set_min_count( $count );
 
    # Return the current cumulative count for this tag
    return $count;
@@ -124,7 +228,7 @@ sub formation { # Calculate the result set for this cloud
    my $bands   = scalar @{ $self->colour_pallet } - 1;
    my $range   = (abs $self->max_count - $self->min_count) || 1;
    my $step    = ($self->max_size - $self->min_size) / $range;
-   my $compare = $self->_get_sort_method;
+   my $compare = $self->$_get_sort_method;
    my $ntags   = @{ $self->_tags };
    my $out     = [];
 
@@ -161,111 +265,6 @@ sub formation { # Calculate the result set for this cloud
    return $out;
 }
 
-# Private methods
-sub _build_colour_pallet {
-   my $self = shift;
-
-   # Unsetting hot or cold colour strings in the constructor will cause
-   # the default pallet to be used instead
-   $self->cold_colour and $self->hot_colour
-      and return [ _generate( 12, $self->cold_colour, $self->hot_colour ) ];
-
-   return [ '#CC33FF', '#663399', '#3300CC', '#99CCFF',
-            '#00FFFF', '#66FFCC', '#66CC99', '#006600',
-            '#CCFF66', '#FFFF33', '#FF6600', '#FF0000' ];
-}
-
-sub _generate { # Robbed from Color::Spectrum since it's abandoned
-   my ($cnt, $col1, $col2) = @_; $col2 ||= $col1; my @murtceps;
-
-   push @murtceps, uc $col1; my $pound = $col1 =~ /^\#/ ? '#' : q();
-
-   $col1 =~s/^\#//; $col2 =~s/^\#//;
-
-   my $clockwise = 0; $cnt < 0 and $clockwise++; $cnt = int( abs( $cnt ) );
-
-   $cnt <= 1 and return ( wantarray() ? @murtceps : \@murtceps );
-   $cnt == 2 and return ( wantarray()
-                          ? ( "${pound}${col1}", "${pound}${col2}" )
-                          : [ "${pound}${col1}", "${pound}${col2}" ] );
-
-   # The RGB values need to be on the decimal scale,
-   # so we divide em by 255 enpassant.
-   my ( $h1, $s1, $i1 )
-      = _rgb2hsi( map { hex() / 255 } unpack( 'a2a2a2', $col1 ) );
-   my ( $h2, $s2, $i2 )
-      = _rgb2hsi( map { hex() / 255 } unpack( 'a2a2a2', $col2 ) );
-
-   $cnt--; my $sd = ( $s2 - $s1 ) / $cnt; my $id = ( $i2 - $i1 ) / $cnt;
-
-   my $hd = $h2 - $h1;
-
-   $hd = ( uc( $col1 ) eq uc( $col2 ) )
-       ? ( $clockwise ? -1 : 1 ) / $cnt
-       : ( ( $hd < 0 ? 1 : 0 ) + $hd - $clockwise) / $cnt;
-
-   while (--$cnt) {
-      $s1 += $sd; $i1 += $id; $h1 += $hd;
-      $h1 > 1 and $h1 -= 1; $h1 < 0 and $h1 += 1;
-      push @murtceps, sprintf "${pound}%02X%02X%02X",
-         map { int( $_ * 255 + 0.5 ) } _hsi2rgb( $h1, $s1, $i1 );
-   }
-
-   push @murtceps, uc "${pound}${col2}";
-
-   return wantarray() ? @murtceps : \@murtceps;
-}
-
-sub _get_sort_method { # Add called multiple times, determine the sorting method
-   my $self = shift;
-
-   # No sorting if sort field is false
-   my $field = $self->sort_field or return sub { return 0 };
-
-   ref $field and return $field; # User supplied subroutine
-
-   my $orderby = $self->_sorts->{ lc $self->sort_type  }
-                              ->{ lc $self->sort_order }->( $field );
-
-   # Protect against wrong sort type for the data
-   return $field ne 'tag'
-        ? sub { return $orderby->( @_ ) || $_[ 0 ]->{tag} cmp $_[ 1 ]->{tag} }
-        : $orderby;
-}
-
-sub _rgb2hsi {
-   my ( $r, $g, $b ) = @_; my ( $h, $s, $i ) = ( 0, 0, 0 );
-
-   $i = ( $r + $g + $b ) / 3; $i == 0 and return ( $h, $s, $i );
-
-   my $x = $r - 0.5 * ( $g + $b ); my $y = 0.866025403 * ( $g - $b );
-
-   $s = ( $x ** 2 + $y ** 2 ) ** 0.5; $s == 0 and return ( $h, $s, $i );
-
-   $h = POSIX::atan2( $y , $x ) / ( 2 * 3.1415926535 );
-
-   return ( $h, $s, $i );
-}
-
-sub _hsi2rgb {
-   my ( $h, $s, $i ) =  @_; my ( $r, $g, $b ) = ( 0, 0, 0 );
-
-   # Degenerate cases. If !intensity it's black, if !saturation it's grey
-   $i == 0 and return ( $r, $g, $b ); $s == 0 and return ( $i, $i, $i );
-
-   $h = $h * 2 * 3.1415926535;
-
-   my $x = $s * cos( $h ); my $y = $s * sin( $h );
-
-   $r = $i + ( 2 / 3 * $x );
-   $g = $i - ( $x / 3 ) + ( $y / 2 / 0.866025403 );
-   $b = $i - ( $x / 3 ) - ( $y / 2 / 0.866025403 );
-   # Limit 0<=x<=1  ## YUCK but we go outta range without it.
-   ( $r, $b, $g ) = map { $_ < 0 ? 0 : $_ > 1 ? 1 : $_ } ( $r, $b, $g );
-
-   return ( $r, $g, $b );
-}
-
 1;
 
 __END__
@@ -274,13 +273,21 @@ __END__
 
 =encoding utf8
 
+=begin html
+
+<a href="https://travis-ci.org/pjfl/p5-data-cloudweights"><img src="https://travis-ci.org/pjfl/p5-data-cloudweights.png" alt="Travis CI Badge"></a>
+<a href="http://badge.fury.io/pl/Data-CloudWeights"><img src="https://badge.fury.io/pl/Data-CloudWeights.svg" alt="CPAN Badge"></a>
+<a href="http://cpants.cpanauthors.org/dist/Data-CloudWeights"><img src="http://cpants.cpanauthors.org/dist/Data-CloudWeights.png" alt="Kwalitee Badge"></a>
+
+=end html
+
 =head1 Name
 
 Data::CloudWeights - Calculate values for an HTML tag cloud
 
 =head1 Version
 
-Describes version v0.14.$Rev: 1 $ of L<Data::CloudWeights>
+Describes version v0.14.$Rev: 2 $ of L<Data::CloudWeights>
 
 =head1 Synopsis
 
@@ -341,10 +348,18 @@ cloud. Defaults to I<#FF0000> (red)
 
 Limits the size of the returned list. Defaults to zero, no limit
 
+=item I<max_count>
+
+The largest count in the cloud
+
 =item I<max_size>
 
 The upper boundary value to which the highest count in the cloud is
 scaled. Defaults to 3.0 (ems)
+
+=item I<min_count>
+
+The smallest count in the cloud
 
 =item I<min_size>
 
@@ -367,6 +382,10 @@ Either C<asc> for ascending or C<desc> for descending sort order
 
 Either C<alpha> to use the C<cmp> operator or C<numeric> to use the
 C<< <=> >> operator in sorting comparisons
+
+=item I<total_count>
+
+The total count of all tags in the cloud
 
 =back
 

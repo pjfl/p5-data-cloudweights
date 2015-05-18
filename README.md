@@ -1,10 +1,16 @@
+<div>
+    <a href="https://travis-ci.org/pjfl/p5-data-cloudweights"><img src="https://travis-ci.org/pjfl/p5-data-cloudweights.png" alt="Travis CI Badge"></a>
+    <a href="http://badge.fury.io/pl/Data-CloudWeights"><img src="https://badge.fury.io/pl/Data-CloudWeights.svg" alt="CPAN Badge"></a>
+    <a href="http://cpants.cpanauthors.org/dist/Data-CloudWeights"><img src="http://cpants.cpanauthors.org/dist/Data-CloudWeights.png" alt="Kwalitee Badge"></a>
+</div>
+
 # Name
 
 Data::CloudWeights - Calculate values for an HTML tag cloud
 
 # Version
 
-Describes version v0.12.$Rev: 1 $ of [Data::CloudWeights](https://metacpan.org/module/Data::CloudWeights)
+Describes version v0.14.$Rev: 1 $ of [Data::CloudWeights](https://metacpan.org/pod/Data::CloudWeights)
 
 # Synopsis
 
@@ -38,7 +44,7 @@ Attributes defined by this class:
 - _cold\_colour_
 
     The six character hex colour for the smallest count in the
-    cloud. Defaults to _\#0000FF_ (blue)
+    cloud. Defaults to _#0000FF_ (blue)
 
 - _colour\_pallet_
 
@@ -57,16 +63,24 @@ Attributes defined by this class:
 - _hot\_colour_
 
     The six character hex colour for the highest count in the
-    cloud. Defaults to _\#FF0000_ (red)
+    cloud. Defaults to _#FF0000_ (red)
 
 - _limit_
 
     Limits the size of the returned list. Defaults to zero, no limit
 
+- _max\_count_
+
+    The largest count in the cloud
+
 - _max\_size_
 
     The upper boundary value to which the highest count in the cloud is
     scaled. Defaults to 3.0 (ems)
+
+- _min\_count_
+
+    The smallest count in the cloud
 
 - _min\_size_
 
@@ -90,6 +104,10 @@ Attributes defined by this class:
     Either `alpha` to use the `cmp` operator or `numeric` to use the
     `<=>` operator in sorting comparisons
 
+- _total\_count_
+
+    The total count of all tags in the cloud
+
 # Subroutines/Methods
 
 ## new
@@ -97,14 +115,14 @@ Attributes defined by this class:
     $cloud = Data::CloudWeights->new( [{] attr => value, ... [}] )
 
 This is a class method, the constructor for
-[Data::CloudWeights](https://metacpan.org/module/Data::CloudWeights). Options are passed as either a list of keyword
+[Data::CloudWeights](https://metacpan.org/pod/Data::CloudWeights). Options are passed as either a list of keyword
 value pairs or a hash ref
 
 ## BUILD
 
 If the `hot_colour` or `cold_colour` attributes are undefined a
 discreet colour value will be selected from the 'pallet' instead of
-calculating it using [Color::Spectrum](https://metacpan.org/module/Color::Spectrum)
+calculating it using [Color::Spectrum](https://metacpan.org/pod/Color::Spectrum)
 
 ## add
 
@@ -157,23 +175,23 @@ None
 
 # Acknowledgements
 
-- Originally [WWW::CloudCreator](https://metacpan.org/module/WWW::CloudCreator)
+- Originally [WWW::CloudCreator](https://metacpan.org/pod/WWW::CloudCreator)
 
     This did not let me calculate font sizes in ems
 
-- [HTML::TagCloud::Sortable](https://metacpan.org/module/HTML::TagCloud::Sortable)
+- [HTML::TagCloud::Sortable](https://metacpan.org/pod/HTML::TagCloud::Sortable)
 
     I lifted the sorting code from here
 
-- [Color::Spectrum](https://metacpan.org/module/Color::Spectrum)
+- [Color::Spectrum](https://metacpan.org/pod/Color::Spectrum)
 
     I copied the colour value manipulation code from here after this
     distribution started failing tests on 5.18
 
 # Dependencies
 
-- [Moo](https://metacpan.org/module/Moo)
-- [Type::Tiny](https://metacpan.org/module/Type::Tiny)
+- [Moo](https://metacpan.org/pod/Moo)
+- [Type::Tiny](https://metacpan.org/pod/Type::Tiny)
 
 # Incompatibilities
 
@@ -191,10 +209,10 @@ Peter Flanigan, `<pjfl@cpan.org>`
 
 # License and Copyright
 
-Copyright (c) 2013 Peter Flanigan. All rights reserved
+Copyright (c) 2015 Peter Flanigan. All rights reserved
 
 This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself. See [perlartistic](https://metacpan.org/module/perlartistic)
+under the same terms as Perl itself. See [perlartistic](https://metacpan.org/pod/perlartistic)
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT WARRANTY; without even the implied warranty of

@@ -1,5 +1,7 @@
 Revision history for Data::CloudWeights
 
+          - Added badges and public repository
+
 0.14.1    2015-01-20 13:10:13
           - Fixed undef warning in tests
 
