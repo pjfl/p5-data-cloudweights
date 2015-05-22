@@ -10,7 +10,7 @@ Data::CloudWeights - Calculate values for an HTML tag cloud
 
 # Version
 
-Describes version v0.14.$Rev: 1 $ of [Data::CloudWeights](https://metacpan.org/pod/Data::CloudWeights)
+Describes version v0.15.$Rev: 0 $ of [Data::CloudWeights](https://metacpan.org/pod/Data::CloudWeights)
 
 # Synopsis
 
