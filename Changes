@@ -1,5 +1,7 @@
 Revision history for Data::CloudWeights
 
+          - Strict POD encoding
+          - Using containers for Travis CI
           - Toolchain update
 
 0.15.1    2015-05-22 09:14:54
