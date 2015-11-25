@@ -1,27 +1,8 @@
-use strict;
-use warnings;
-use File::Spec::Functions qw( catdir updir );
-use FindBin               qw( $Bin );
-use lib               catdir( $Bin, updir, 'lib' );
+use t::boilerplate;
 
-use Module::Build;
-use Sys::Hostname;
 use Test::More;
 
-my $builder; my $notes = {}; my $perl_ver;
-
-BEGIN {
-   $builder  =  eval { Module::Build->current };
-   $builder and $notes = $builder->notes;
-   $perl_ver =  $notes->{min_perl_version} || 5.008;
-   $notes->{testing} and lc hostname eq 'albie-pc'
-      and plan skip_all => 'Broken smoker 0a0d65bf-7a6f-1014-ab5e-171548f0d22a';
-}
-
-use Test::Requires "${perl_ver}";
-
-use English qw( -no_match_vars );
-use Data::CloudWeights;
+use_ok 'Data::CloudWeights';
 
 my $cloud = Data::CloudWeights->new;
 
